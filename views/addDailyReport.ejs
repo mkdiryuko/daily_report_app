@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+  </head>
+  <body>
+    <h2><%= currentDate %></h2>
+    <form action="/">
+      <label>JobNo</label>
+      <select id="jobNo" name="jobNo" onchange="GetjobName()">
+        <option value="" selected disabled></option>
+        <% for(i=0; i<jobs.length; i++) { %>
+          <option value="<%= jobs[i].id %>"><%= jobs[i].jobno %></option>
+        <% }; %>
+      </select>
+      <br />
+      <label>案件名</label>
+      <input type="text" id="jobName" readonly>
+      <script>
+        function GetjobName() {
+          const jobNo = document.getElementById('jobNo');
+          const jobName = document.getElementById('jobName');
+          // TODO 案件名をjobsテーブルから取得する
+          const contents = {
+              1: "hello",
+              2: "Good Bye",
+              3: "Thank you"
+          };
+          jobName.value = contents[jobNo.value];
+        }
+      </script>
+      <br>
+      <label>作業内容</label>
+      <select name="Sagyounaiyou">
+        <option value="" selected disabled></option>
+        <% for(i=0; i<job_desc.length; i++) { %>
+          <option value="<%= job_desc[i].id %>"><%= job_desc[i].name %></option>
+        <% }; %>
+      </select>
+      <br />
+      <label>工数</label>
+      <select name="Kousuu">
+        <option value="" selected disabled></option>
+        <% for(let hour = 0; hour < 20; hour += 1.0) { %>
+          <% for(let min = 0; min < 60; min += 15) { %>
+            <option value="<%= hour.toString()+min.toString() %>"><%= hour %>:<%= min === 0 ? "00" : min %></option>
+          <% } %>
+        <% } %>
+      </select>
+      <br />
+      <label>備考</label>
+      <br />
+      <textarea name="bikou" rows="5" cols="40"></textarea>
+    </form>
+  </body>
+</html>

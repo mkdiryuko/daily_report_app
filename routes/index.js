@@ -8,7 +8,7 @@ var router = express.Router();
 
 router.get('/', function (req, res, next) {
     res.render('index', {
-        title: 'MSAL Node & Express Web App',
+        title: '業務日報管理アプリ',
         isAuthenticated: req.session.isAuthenticated,
         username: req.session.account?.username,
     });
