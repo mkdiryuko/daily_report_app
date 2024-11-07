@@ -12,7 +12,7 @@
         <div class="col">
           <h2><%= currentDate %></h2>
             <!-- Button trigger modal -->
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#job_reference">
+            <button type="button" class="btn btn-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#job_reference">
               案件を検索する
             </button>
             <!-- Modal -->
@@ -43,34 +43,38 @@
             </div>
           <br>
           <form action="/" onsubmit="return validationForm()">
-            <label>JobNo</label>
-            <input type="text" name="jobNo" id="jobNoText" readonly>
-            <br>
-            <label>案件名</label>
-            <input type="text" name="jobName" id="jobNameText" readonly>
-            <br>
-            <label>作業内容</label>
-            <select name="job_desc" required>
-              <option value="" hidden>選択</option>
-              <% for(i=0; i<job_desc.length; i++) { %>
-                <option value="<%= job_desc[i].id %>"><%= job_desc[i].name %></option>
-              <% }; %>
-            </select>
-            <br />
+            <div class="mb-2">
+              <label>JobNo</label>
+              <input type="text" name="jobNo" id="jobNoText" readonly>
+            </div>
+            <div class="mb-2">
+              <label>案件名</label>
+              <input type="text" name="jobName" id="jobNameText" readonly>
+            </div>
+            <div class="mb-2">
+              <label>作業内容</label>
+              <select name="job_desc" required>
+                <option value="" hidden>選択</option>
+                <% for(i=0; i<job_desc.length; i++) { %>
+                  <option value="<%= job_desc[i].id %>"><%= job_desc[i].name %></option>
+                <% }; %>
+              </select>
+            </div>
+            <div class="mb-2">
             <label>工数</label>
-            <select name="person_hour" required>
-              <option value="" hidden>選択</option>
-              <% for(let hour = 0; hour < 20; hour += 1.0) { %>
-                <% for(let min = 0; min < 60; min += 15) { %>
-                  <option value="<%= hour.toString()+min.toString() %>"><%= hour %>:<%= min === 0 ? "00" : min %></option>
+              <select name="person_hour" required>
+                <option value="" hidden>選択</option>
+                <% for(let hour = 0; hour < 20; hour += 1.0) { %>
+                  <% for(let min = 0; min < 60; min += 15) { %>
+                    <option value="<%= hour.toString()+min.toString() %>"><%= hour %>:<%= min === 0 ? "00" : min %></option>
+                  <% } %>
                 <% } %>
-              <% } %>
-            </select>
-            <br />
+              </select>
+            </div>
             <label>備考</label>
-            <br />
-            <textarea name="note" rows="5" cols="40"></textarea>
-            <br>
+            <div class="mb-2">
+              <textarea name="note" rows="3" cols="40"></textarea>
+            </div>
             <button type="submit" class="btn btn-primary">確定</button>
           </form>
         </div>
