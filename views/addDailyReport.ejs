@@ -9,32 +9,36 @@
     <h2><%= currentDate %></h2>
     <form action="/">
       <label>JobNo</label>
-      <select id="jobNo" name="jobNo" onchange="GetjobName()">
+      <select id="jobNo" name="jobNo" onchange="changeJobName()" required>
         <option value="" selected disabled></option>
         <% for(i=0; i<jobs.length; i++) { %>
-          <option value="<%= jobs[i].id %>"><%= jobs[i].jobno %></option>
+          <option value="<%= jobs[i].id %>" data-jobname="<%= jobs[i].name %>">
+            <%= jobs[i].jobno + ":" + jobs[i].name %>
+          </option>
         <% }; %>
       </select>
       <br />
       <label>案件名</label>
-      <input type="text" id="jobName" readonly>
+      <input type="text" id="jobName" disabled required>
       <script>
-        function GetjobName() {
+        function changeJobName() {
           const jobNo = document.getElementById('jobNo');
-          const jobName = document.getElementById('jobName');
-          // TODO 案件名をjobsテーブルから取得する
-          const contents = {
-              1: "hello",
-              2: "Good Bye",
-              3: "Thank you"
-          };
-          jobName.value = contents[jobNo.value];
+          const jobNameInput = document.getElementById('jobName');
+          
+          // 選択されたオプションを取得
+          const selectedOption = jobNo.options[jobNo.selectedIndex];
+          
+          // data-jobname属性から案件名を取得
+          const jobName = selectedOption.getAttribute('data-jobname');
+          
+          // 案件名の入力フィールドを更新
+          jobNameInput.value = jobName;
         }
       </script>
       <br>
       <label>作業内容</label>
-      <select name="Sagyounaiyou">
-        <option value="" selected disabled></option>
+      <select name="job_desc">
+        <option value="" selected disabled required></option>
         <% for(i=0; i<job_desc.length; i++) { %>
           <option value="<%= job_desc[i].id %>"><%= job_desc[i].name %></option>
         <% }; %>
@@ -52,7 +56,9 @@
       <br />
       <label>備考</label>
       <br />
-      <textarea name="bikou" rows="5" cols="40"></textarea>
+      <textarea name="note" rows="5" cols="40"></textarea>
+      <br>
+      <button class="btn">確定</button>
     </form>
   </body>
 </html>

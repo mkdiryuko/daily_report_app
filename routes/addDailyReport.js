@@ -66,13 +66,4 @@ router.post('/', (req, res) => {
   });
 });
 
-async function GetJobName(jobno) {
-  try {
-    const job = await knex('jobs').where('jobno', jobno).select('name').first();
-    return job ? job.name : null;
-  } catch (error) {
-    throw new Error("Database query error");
-  }
-}
-
 module.exports = router
