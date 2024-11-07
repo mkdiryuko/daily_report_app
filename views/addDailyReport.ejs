@@ -10,7 +10,7 @@
     <form action="/">
       <label>JobNo</label>
       <select id="jobNo" name="jobNo" onchange="changeJobName()" required>
-        <option value="" selected disabled></option>
+        <option value="" hidden>選択</option>
         <% for(i=0; i<jobs.length; i++) { %>
           <option value="<%= jobs[i].id %>" data-jobname="<%= jobs[i].name %>">
             <%= jobs[i].jobno + ":" + jobs[i].name %>
@@ -37,16 +37,16 @@
       </script>
       <br>
       <label>作業内容</label>
-      <select name="job_desc">
-        <option value="" selected disabled required></option>
+      <select name="job_desc" required>
+        <option value="" hidden>選択</option>
         <% for(i=0; i<job_desc.length; i++) { %>
           <option value="<%= job_desc[i].id %>"><%= job_desc[i].name %></option>
         <% }; %>
       </select>
       <br />
       <label>工数</label>
-      <select name="Kousuu">
-        <option value="" selected disabled></option>
+      <select name="person_hour" required>
+        <option value="" hidden>選択</option>
         <% for(let hour = 0; hour < 20; hour += 1.0) { %>
           <% for(let min = 0; min < 60; min += 15) { %>
             <option value="<%= hour.toString()+min.toString() %>"><%= hour %>:<%= min === 0 ? "00" : min %></option>
