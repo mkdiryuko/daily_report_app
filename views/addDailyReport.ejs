@@ -42,7 +42,7 @@
               </div>
             </div>
           <br>
-          <form action="/" onsubmit="return validationForm()">
+          <form action="/addDailyReport" onsubmit="return validationForm()" method="post">
             <div class="mb-2">
               <label>JobNo</label>
               <input type="text" name="jobNo" id="jobNoText" readonly>
@@ -56,7 +56,7 @@
               <select name="job_desc" required>
                 <option value="" hidden>選択</option>
                 <% for(i=0; i<job_desc.length; i++) { %>
-                  <option value="<%= job_desc[i].id %>"><%= job_desc[i].name %></option>
+                  <option><%= job_desc[i].name %></option>
                 <% }; %>
               </select>
             </div>
@@ -66,7 +66,7 @@
                 <option value="" hidden>選択</option>
                 <% for(let hour = 0; hour < 20; hour += 1.0) { %>
                   <% for(let min = 0; min < 60; min += 15) { %>
-                    <option value="<%= hour.toString()+min.toString() %>"><%= hour %>:<%= min === 0 ? "00" : min %></option>
+                    <option><%= hour %>:<%= min === 0 ? "00" : min %></option>
                   <% } %>
                 <% } %>
               </select>
