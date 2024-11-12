@@ -30,7 +30,7 @@ const app = express();
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: false, // set this to true on production
+        secure: false, // TODO set this to true on production
     }
 }));
 

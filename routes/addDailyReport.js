@@ -51,7 +51,7 @@ router.get('/', (req, res, next) => {
     })
 });
 
-// TODO POSTリクエストの処理を書く
+// TODO 決め打ちしているuser_id, job_dateを変更する
 router.post('/', async (req, res) => {
   const jobno = req.body.jobNo;
   const job_desc = req.body.job_desc;
@@ -70,8 +70,7 @@ router.post('/', async (req, res) => {
     if (result) {
       jobno_id = result.id;
       console.log('job_id', jobno_id);
-    }
-    else {
+    } else {
       console.log('job_idが存在しません');
     }
   })
