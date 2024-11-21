@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container">
+        <h2>ユーザー管理</h2>
+        <div class="row">
+            <div class="col-md">
+                <!-- Button trigger modal -->
+                <button type="button" class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                    新規追加
+                </button>
+                <!-- 新規追加モーダル -->
+                <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="addUserModalLabel">新規追加</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                        ...
+                        </div>
+                        <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                        <button type="button" class="btn btn-primary">確定</button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                <table class="table table-striped table-hover table-bordered">
+                    <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">名前</th>
+                        <th scope="col">メールアドレス</th>
+                        <th scope="col">権限</th>
+                        <th scope="col"></th>
+                        <th scope="col"></th>
+                    </tr>
+                    </thead>
+                    <% for (i=0; i<users.length; i++) { %>
+                        <tbody>
+                            <tr>
+                                <td><%= users[i].id %></td>
+                                <td><%= users[i].name %></td>
+                                <td><%= users[i].email %></td>
+                                <td><%= users[i].auth %></td>
+                                <td>
+                                    <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#editUserModal<%= i %>">
+                                        編集
+                                    </button>
+                                    <!-- 編集モーダル -->
+                                    <div class="modal fade" id="editUserModal<%= i %>" tabindex="-1" aria-labelledby="editUserModalLabel<%= i %>" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                            <h1 class="modal-title fs-5" id="editUserModalLabel<%= i %>">編集</h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form action="/auth/user", method="post">
+                                                <div class="modal-body">
+                                                    <div class="container">
+                                                        <div class="row mb-2">
+                                                            <div class="col-3">
+                                                                <label>ID</label>
+                                                            </div>
+                                                            <div class="col-auto">
+                                                                <p><%= users[i].id %></p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mb-2">
+                                                            <div class="col-3">
+                                                                <label>名前</label>
+                                                            </div>
+                                                            <div class="col-auto">
+                                                                <input type="text" value="<%= users[i].name %>" readonly>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mb-2">
+                                                            <div class="col-3">
+                                                                <label>メールアドレス</label>
+                                                            </div>
+                                                            <div class="col-auto">
+                                                                <input type="email" value="<%= users[i].email %>" readonly>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mb-2">
+                                                            <div class="col-3">
+                                                                <label>権限</label>
+                                                            </div>
+                                                            <div class="col-auto">
+                                                                <select name="auth" id="auth">
+                                                                    <option value="" selected hidden><%= users[i].auth %></option>
+                                                                    <option value="">パートナー</option>
+                                                                    <option value="">マネージャー</option>
+                                                                    <option value="">管理者</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                                                <button type="submit" class="btn btn-primary">確定</button>
+                                            </div>
+                                        </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#deleteUserModal<%= i %>">
+                                        削除
+                                    </button>
+                                    <!-- 削除モーダル -->
+                                    <div class="modal fade" id="deleteUserModal<%= i %>" tabindex="-1" aria-labelledby="deleteUserModalLabel<%= i %>" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                            <h1 class="modal-title fs-5" id="deleteUserModalLabel<%= i %>">削除</h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="container">
+                                                    <div class="row mb-2">
+                                                        <div class="col-3">
+                                                            <label>名前</label>
+                                                        </div>
+                                                        <div class="col-auto">
+                                                            <input type="text" value="<%= users[i].name %>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-3">
+                                                            <label>メールアドレス</label>
+                                                        </div>
+                                                        <div class="col-auto">
+                                                            <input type="email" value="<%= users[i].email %>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-3">
+                                                            <label>権限</label>
+                                                        </div>
+                                                        <div class="col-auto">
+                                                            <select name="auth" id="auth">
+                                                                <option value="" selected hidden><%= users[i].auth %></option>
+                                                                <option value="">パートナー</option>
+                                                                <option value="">マネージャー</option>
+                                                                <option value="">管理者</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                                            <button type="button" class="btn btn-warning">削除</button>
+                                            </div>
+                                        </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    <% }; %>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+</html>
