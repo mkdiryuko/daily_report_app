@@ -15,7 +15,6 @@ const DBconfig = {
 const connection = mysql.createConnection(DBconfig);
 
 router.get('/', async (req, res, next) => {
-  // TODO MySQLの日付型を文字列型に変換する
     knex('jobs')
     .select(
       'id',
