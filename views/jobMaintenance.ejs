@@ -34,6 +34,7 @@
                                             </label>
                                         </div>
                                     </td>
+                                    <td><button>検索</button></td>
                                 </tr>
                                 <tr>
                                     <th>案件名</th>
@@ -89,7 +90,12 @@
                                             <div class="modal-dialog">
                                             <div class="modal-content">
                                                 <div class="modal-header">
-                                                <h1 class="modal-title fs-5" id="deleteJobModalLabel<%= i %>">本当に削除してもよろしいですか？</h1>
+                                                <h2 class="modal-title fs-5" id="deleteJobModalLabel<%= i %>">
+                                                    本当に削除してもよろしいですか？<br>
+                                                    <% if (relationJobnoIdList.includes(jobs[i].id.toString())) { %>
+                                                        <font style="color: red;">(※)該当案件での日報登録が存在します</font>
+                                                    <% }; %>
+                                                </h2>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body">
@@ -130,7 +136,7 @@
                                                 </div>
                                                 <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
-                                                <button type="button" class="btn btn-danger">削除</button>
+                                                <button type="button" class="btn btn-danger" id="deleteJobButton" data-id="<%= jobs[i].id %>">削除</button>
                                                 </div>
                                             </div>
                                             </div>
@@ -165,6 +171,30 @@
         dateInputs.forEach(input => {
             input.value = formattedDate;
         });
+    </script>
+    <script>
+        document.getElementById('deleteJobButton').addEventListener('click', async () => {
+            const recordId = document.getElementById('deleteJobButton').dataset.id;
+
+            try {
+                const response = await fetch(`jobMaintenance/delete`, {
+                    method: `POST`,
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ id: recordId })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(result.message);
+                } else {
+                    alert(`エラー: ${ result.message }`);
+                }
+            } catch (error){
+                console.error("Error:", error);
+                alert('案件の削除に失敗しました(DB)');
+            }
+        })
     </script>
     <style>
         .sort.desc:after {
