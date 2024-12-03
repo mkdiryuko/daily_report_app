@@ -17,35 +17,35 @@ const DBconfig = {
 const connection = mysql.createConnection(DBconfig);
 
 router.get('/', async (req, res, next) => {
-    knex('jobs')
-    .select(
-      'id',
-      'jobno',
-      'name',
-      knex.raw("DATE_FORMAT(start_date, '%Y/%m/%d') AS 'start_date'"),
-      knex.raw("DATE_FORMAT(end_date, '%Y/%m/%d') AS 'end_date'")
-    )
-    .then(async result => {
-      let jobno_id_list = [];
-      for (let i=0; i<result.length; i++) {
-        jobno_id_list.push(result[i].id);
-      };
-      res.render('jobMaintenance', {
-        title: 'Daily Report App',
-        isAuthenticated: req.session.isAuthenticated,
-        username: req.session.account?.username,
-        jobs: result,
-        relationJobnoIdList: await checkRelation.checkRelationId("daily_report", "jobno_id", jobno_id_list)
-      })
+  knex('jobs')
+  .select(
+    'id',
+    'jobno',
+    'name',
+    knex.raw("DATE_FORMAT(start_date, '%Y/%m/%d') AS 'start_date'"),
+    knex.raw("DATE_FORMAT(end_date, '%Y/%m/%d') AS 'end_date'")
+  )
+  .then(async result => {
+    let jobno_id_list = [];
+    for (let i=0; i<result.length; i++) {
+      jobno_id_list.push(result[i].id);
+    };
+    res.render('jobMaintenance', {
+      title: 'Daily Report App',
+      isAuthenticated: req.session.isAuthenticated,
+      username: req.session.account?.username,
+      jobs: result,
+      relationJobnoIdList: await checkRelation.checkRelationId("daily_report", "jobno_id", jobno_id_list)
     })
-    .catch(error => {
-      console.error(error);
-      res.render('index', {
-        title: 'Daily Report App',
-        isAuthenticated: req.session.isAuthenticated,
-        username: req.session.account?.username,
-      })
+  })
+  .catch(error => {
+    console.error(error);
+    res.render('index', {
+      title: 'Daily Report App',
+      isAuthenticated: req.session.isAuthenticated,
+      username: req.session.account?.username,
     })
+  })
 });
 
 // 案件削除
