@@ -39,4 +39,16 @@ router.get('/profile',
     }
 );
 
+router.get('/user_maintenance',
+    isAuthenticated, // check if user is authenticated
+    async function (req, res, next) {
+        try {
+            const graphResponse = await fetch(GRAPH_USER_ENDPOINT, req.session.accessToken);
+            res.render('user_maintenance', { user_all_profile: graphResponse })
+        } catch (error) {
+            next(error);
+        }
+    }
+)
+
 module.exports = router;
