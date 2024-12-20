@@ -17,6 +17,8 @@ const DBconfig = {
 const connection = mysql.createConnection(DBconfig);
 
 router.get('/', async (req, res, next) => {
+  const userName = req.session.account?.name;
+
   knex('jobs')
   .select(
     'id',
@@ -35,7 +37,8 @@ router.get('/', async (req, res, next) => {
       isAuthenticated: req.session.isAuthenticated,
       username: req.session.account?.username,
       jobs: result,
-      relationJobnoIdList: await checkRelation.checkRelationId("daily_report", "jobno_id", jobno_id_list)
+      relationJobnoIdList: await checkRelation.checkRelationId("daily_report", "jobno_id", jobno_id_list),
+      userName: userName
     })
   })
   .catch(error => {
@@ -43,7 +46,7 @@ router.get('/', async (req, res, next) => {
     res.render('index', {
       title: 'Daily Report App',
       isAuthenticated: req.session.isAuthenticated,
-      username: req.session.account?.username,
+      userName: userName
     })
   })
 });

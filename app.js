@@ -13,6 +13,7 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 
 const indexRouter = require('./routes/index');
+const mainRouter = require('./routes/main');
 const usersRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
 const addDailyReportRouter = require('./routes/addDailyReport');
@@ -50,6 +51,7 @@ app.use('/users', usersRouter);
 app.use('/auth', authRouter);
 app.use('/addDailyReport', addDailyReportRouter);
 app.use('/jobMaintenance', jobMaintenanceRouter);
+app.use('/main', mainRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

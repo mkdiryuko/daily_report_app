@@ -51,8 +51,8 @@ router.get('/', function (req, res, next) {
   res.render('index', {
     title: '業務日報管理アプリ',
     isAuthenticated: isAuthenticated,
-    userEmail: userName,
-    userName: userEmail
+    userEmail: userEmail,
+    userName: userName
   });
 });
 
