@@ -43,6 +43,8 @@ router.get('/', function (req, res, next) {
           }
         )
       }
+      // セッションにログインユーザーのidを登録する
+      req.session.userId = result.id;
     })
     .catch(error => {
       console.error(error);

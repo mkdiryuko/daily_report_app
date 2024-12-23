@@ -14,7 +14,7 @@
     <div class="date-wrapper">
       <div class="left-group">
         <div class="triangle-btn prev" id="prev-btn"></div>
-        <input type="date" id="date-input">
+        <input type="date" id="date-input" value="<%= selectedDate %>">
         <div class="triangle-btn next" id="next-btn"></div>
         <div class="work-hours-container">
           <span>実労働時間：</span>
@@ -25,7 +25,7 @@
           <button class="openHolidayModal">休暇申請</button>
       </div>
     </div>
-    <!-- DBからレコードを取得し、日付でフィルタリング後、表示する-->
+
     <div class="table-container">
       <div class="table-header">
         <div class="table-title">作業工数</div>
@@ -40,33 +40,35 @@
             <th scope="col">時間</th>
           </tr>
         </thead>
+        <% for(i=0; i<daily_reports.length; i++) { %>
         <tbody>
-          <td scope="row" rowspan="7" class="table-no">001</td>
+          <td scope="row" rowspan="7" class="table-no">00<%= i+1 %></td>
           <tr>
             <th scope="row">作業内容</th>
-            <td class="item-table__data">設計</td>
+            <td class="item-table__data"><%= daily_reports[i].job_desc_name %></td>
             <td rowspan="2" align="center">
               <div class="time-container">
-                <div id="time">3:30</div>
+                <div id="time"><%= daily_reports[i].person_hour %></div>
               </div>
             </td>
           </tr>
           <tr>
             <th scope="row">JobNo</th>
-            <td class="item-table__data">2300513</td>
+            <td class="item-table__data"><%= daily_reports[i].jobno %></td>
           </tr>
           <tr>
             <th scope="row">案件</th>
-            <td class="item-table_data">ALAP_iDB_ホンダMBA-FMT作業委託 4月</td>
+            <td class="item-table_data"><%= daily_reports[i].job_name %></td>
             <td rowspan="2" align="center">
                 <button class="edit-btn openEditModal">編集</button>
             </td>
           </tr>
           <tr>
             <th scope="row">備考</th>
-            <td><textarea name="textarea" id="textarea" rows="3" readonly></textarea></td>
+            <td><textarea name="textarea" id="textarea" rows="3" readonly><%= daily_reports[i].note %></textarea></td>
           </tr>
         </tbody>
+        <% }; %>
       </table>
     </div>
     <div id="modal" class="modal">
@@ -75,21 +77,38 @@
         <div class="modal-header">
           工数登録
         </div>
-        <!-- 案件検索ボタンを配置し、ドロップダウンから検索できるようにする-->
-        <button>案件検索</button>
-        <form id="modalForm" class="modal-form">
+        <div class="dropdown">
+          <button id="job-search-btn">案件検索</button>
+          <div class="dropdown-menu" id="job-search-dropdownMenu">
+            <ul>
+              <% for(i=0; i<jobs.length; i++) { %>
+                <li data-jobno="<%= jobs[i].jobno %>" data-jobname="<%= jobs[i].name %>"><%= jobs[i].jobno + " " + jobs[i].name %></li>
+              <% }; %>
+            </ul>
+          </div>
+        </div>
+        <form id="modalForm" class="modal-form" method="post">
           <label for="JobNo" class="modal-form__label">JobNo</label>
-          <input type="text" name="jobNo" id="JobNo" class="form-control">
+          <input type="text" name="jobNo" id="jobNo" class="form-control" readonly>
           <br>
           <label for="jobName" class="modal-form__label">案件名</label>
-          <input type="text" name="jobName" id="jobName" class="form-control">
+          <input type="text" name="jobName" id="jobName" class="form-control" readonly>
           <br>
           <label for="job_desc" class="modal-form__label">作業内容</label>
           <select name="job_desc" id="job_desc" class="form-control" required>
             <option value="" hidden>選択</option>
-            <option value="">設計</option>
-            <option value="">テスト</option>
-            <option value="">コーディング</option>
+            <% for(i=0; i<job_descs.length; i++) { %>
+              <option><%= job_descs[i].name %></option>
+            <% }; %>
+          </select>
+          <label for="person_hour" class="modal-form__label">工数</label>
+          <select name="person_hour" id="person_hour" class="form-control" required>
+            <option value="" hidden>選択</option>
+            <% for(let hour = 0; hour < 20; hour += 1.0) { %>
+              <% for(let min = 0; min < 60; min += 15) { %>
+                <option><%= hour %>:<%= min === 0 ? "00" : min %></option>
+              <% } %>
+            <% } %>
           </select>
           <br>
           <label for="" class="modal-form__label">備考</label>
@@ -97,7 +116,7 @@
           <br>
         </form>
         <div class="modal-footer">
-          <button class="submit-btn">登録</button>
+          <button class="submit-btn" form="modalForm">登録</button>
           <button class="cancel-btn">キャンセル</button>
         </div>
       </div>
