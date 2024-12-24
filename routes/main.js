@@ -16,11 +16,25 @@ const DBconfig = {
 const connection = mysql.createConnection(DBconfig);
 const today = new Date().toISOString().split('T')[0];
 
+async function getTotalPersonHour(date) {
+  try {
+    const result = await knex('daily_report')
+    .where({'job_date': date})
+    .select(knex.raw('SEC_TO_TIME(SUM(TIME_TO_SEC(person_hour))) AS total_person_hour'))
+    console.log('knexのクエリ結果:', result[0].total_person_hour);
+    return result[0].total_person_hour;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
 // TODOマネージャーがパートナーに応じて、案件を割り当てるので、jobsを自分の案件のみに絞る
 router.get('/', async (req, res, next) => {
   const isAuthenticated = req.session.isAuthenticated;
   const userName = req.session.account?.name;
   const selectedDate = req.query.date || today;
+  const total_person_hour = await getTotalPersonHour(selectedDate);
+  console.log('total_person_hour:', total_person_hour);
   await knex('daily_report')
   .join('jobs', 'daily_report.jobno_id','=', 'jobs.id')
   .join('job_desc', 'daily_report.job_desc_id','=', 'job_desc.id')
@@ -36,7 +50,6 @@ router.get('/', async (req, res, next) => {
     'daily_report.note'
   )
   .then(daily_reports => {
-    console.log("日報：", daily_reports);
     return Promise.all([
       knex('jobs').select('*'),
       knex('job_desc').select('*')
@@ -47,7 +60,8 @@ router.get('/', async (req, res, next) => {
         daily_reports: daily_reports,
         jobs: jobs,
         job_descs: job_descs,
-        selectedDate: selectedDate
+        selectedDate: selectedDate,
+        total_person_hour: total_person_hour
       });
     });
   })
@@ -62,15 +76,15 @@ router.get('/', async (req, res, next) => {
 
 // TODO 決め打ちしているuser_id, job_dateを変更する
 router.post('/', async (req, res) => {
-  const user_id = req.session.userId;
+  const user_id = 1;
+  const job_date = req.query.date;
   const jobno = req.body.jobNo;
   const job_desc = req.body.job_desc;
   const person_hour = req.body.person_hour;
   const note = req.body.note;
-  
   let jobno_id = 0;
   let job_desc_id = 0;
-
+  
   // jobnoがjobs DBに存在するかをチェック
   await knex("jobs")
   .select('id')
@@ -109,7 +123,7 @@ router.post('/', async (req, res) => {
   knex("daily_report")
   .insert({
     user_id: user_id,
-    job_date: "2024-11-11", 
+    job_date: job_date, 
     jobno_id: jobno_id,
     person_hour: person_hour,
     job_desc_id: job_desc_id,
@@ -117,7 +131,7 @@ router.post('/', async (req, res) => {
     note: note
   })
   .then(() => {
-    res.redirect('/addDailyReport');
+    res.redirect('/main');
   })
   .catch(error => {
     console.error(error);
