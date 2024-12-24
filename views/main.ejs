@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('partials/head.ejs'); %>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/modal.css">
+</head>
+<body>
+  <%- include('partials/header.ejs'); %>
+  <%- include('partials/sidebar.ejs'); %>
+
+  <main>
+    <h3>工数登録</h3>
+    <div class="date-wrapper">
+      <div class="left-group">
+        <div class="triangle-btn prev" id="prev-btn"></div>
+        <input type="date" id="date-input" value="<%= selectedDate %>">
+        <div class="triangle-btn next" id="next-btn"></div>
+        <div class="work-hours-container">
+          <span>実労働時間：</span>
+          <div class="work-hours-time"><%= total_person_hour %></div>
+        </div>
+      </div>
+      <div class="right-group">
+          <button class="openHolidayModal">休暇申請</button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <div class="table-header">
+        <div class="table-title">作業工数</div>
+        <button class="openModal">工数登録</button>
+      </div>
+      <table border="1">
+        <thead>
+          <tr>
+            <th scope="col">No.</th>
+            <th scope="col">内容</th>
+            <th scope="col"></th>
+            <th scope="col">時間</th>
+          </tr>
+        </thead>
+        <% for(i=0; i<daily_reports.length; i++) { %>
+        <tbody>
+          <td scope="row" rowspan="7" class="table-no">00<%= i+1 %></td>
+          <tr>
+            <th scope="row">作業内容</th>
+            <td class="item-table__data"><%= daily_reports[i].job_desc_name %></td>
+            <td rowspan="2" align="center">
+              <div class="time-container">
+                <div id="time"><%= daily_reports[i].person_hour %></div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">JobNo</th>
+            <td class="item-table__data"><%= daily_reports[i].jobno %></td>
+          </tr>
+          <tr>
+            <th scope="row">案件</th>
+            <td class="item-table_data"><%= daily_reports[i].job_name %></td>
+            <td rowspan="2" align="center">
+                <button class="edit-btn openEditModal">編集</button>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">備考</th>
+            <td><textarea name="textarea" id="textarea" rows="3" readonly><%= daily_reports[i].note %></textarea></td>
+          </tr>
+        </tbody>
+        <% }; %>
+      </table>
+    </div>
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <div class="modal-header">
+          工数登録
+        </div>
+        <div class="dropdown">
+          <button id="job-search-btn">案件検索</button>
+          <div class="dropdown-menu" id="job-search-dropdownMenu">
+            <ul>
+              <% for(i=0; i<jobs.length; i++) { %>
+                <li data-jobno="<%= jobs[i].jobno %>" data-jobname="<%= jobs[i].name %>"><%= jobs[i].jobno + " " + jobs[i].name %></li>
+              <% }; %>
+            </ul>
+          </div>
+        </div>
+        <form id="modalForm" class="modal-form" method="post">
+          <label for="JobNo" class="modal-form__label">JobNo</label>
+          <input type="text" name="jobNo" id="jobNo" class="form-control" readonly>
+          <br>
+          <label for="jobName" class="modal-form__label">案件名</label>
+          <input type="text" name="jobName" id="jobName" class="form-control" readonly>
+          <br>
+          <label for="job_desc" class="modal-form__label">作業内容</label>
+          <select name="job_desc" id="job_desc" class="form-control" required>
+            <option value="" hidden>選択</option>
+            <% for(i=0; i<job_descs.length; i++) { %>
+              <option><%= job_descs[i].name %></option>
+            <% }; %>
+          </select>
+          <label for="person_hour" class="modal-form__label">工数</label>
+          <select name="person_hour" id="person_hour" class="form-control" required>
+            <option value="" hidden>選択</option>
+            <% for(let hour = 0; hour < 20; hour += 1.0) { %>
+              <% for(let min = 0; min < 60; min += 15) { %>
+                <option><%= hour %>:<%= min === 0 ? "00" : min %></option>
+              <% } %>
+            <% } %>
+          </select>
+          <br>
+          <label for="" class="modal-form__label">備考</label>
+          <textarea name="note" rows="3" cols="40" class="form-control"></textarea>
+          <br>
+        </form>
+        <div class="modal-footer">
+          <button class="submit-btn" form="modalForm">登録</button>
+          <button class="cancel-btn">キャンセル</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  <!-- js -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="text/javascript" src="../js/layout.js"></script>
+  <script type="text/javascript" src="../js/main.js"></script>
+  <script type="text/javascript" src="../js/modal.js"></script>
+</body>
+</html>
