@@ -48,7 +48,7 @@
             <td class="item-table__data"><%= daily_reports[i].job_desc_name %></td>
             <td rowspan="2" align="center">
               <div class="time-container">
-                <div id="time"><%= daily_reports[i].person_hour %></div>
+                <div id="time"><%= daily_reports[i].person_hour.slice(0, 5) %></div>
               </div>
             </td>
           </tr>

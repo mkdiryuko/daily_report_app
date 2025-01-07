@@ -21,7 +21,9 @@ async function getTotalPersonHour(date) {
     const result = await knex('daily_report')
     .where({'job_date': date})
     .select(knex.raw('SEC_TO_TIME(SUM(TIME_TO_SEC(person_hour))) AS total_person_hour'))
-    console.log('knexのクエリ結果:', result[0].total_person_hour);
+    if (result[0].total_person_hour === null) {
+      return "00:00:00";
+    }
     return result[0].total_person_hour;
   } catch (error) {
     console.error('Error:', error);
@@ -34,7 +36,6 @@ router.get('/', async (req, res, next) => {
   const userName = req.session.account?.name;
   const selectedDate = req.query.date || today;
   const total_person_hour = await getTotalPersonHour(selectedDate);
-  console.log('total_person_hour:', total_person_hour);
   await knex('daily_report')
   .join('jobs', 'daily_report.jobno_id','=', 'jobs.id')
   .join('job_desc', 'daily_report.job_desc_id','=', 'job_desc.id')
@@ -61,7 +62,7 @@ router.get('/', async (req, res, next) => {
         jobs: jobs,
         job_descs: job_descs,
         selectedDate: selectedDate,
-        total_person_hour: total_person_hour
+        total_person_hour: total_person_hour.slice(0, 5)
       });
     });
   })
