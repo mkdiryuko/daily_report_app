@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
   <%- include('partials/head.ejs'); %>
   <link rel="stylesheet" href="../css/main.css">
@@ -60,7 +60,7 @@
             <th scope="row">案件</th>
             <td class="item-table_data"><%= daily_reports[i].job_name %></td>
             <td rowspan="2" align="center">
-                <button class="edit-btn openModal" id="edit-btn" onclick="openModal('edit', '<%= daily_reports[i].id %>')">編集</button>
+                <button class="edit-btn openModal" id="edit-btn<%= daily_reports[i].id %>" onclick="openModal('edit', '<%= daily_reports[i].id %>')">編集</button>
             </td>
           </tr>
           <tr>
@@ -114,11 +114,11 @@
           <label for="" class="modal-form__label">備考</label>
           <textarea name="note" rows="3" cols="40" id="note" class="form-control"></textarea>
           <br>
+          <div class="modal-footer">
+            <button class="submit-btn" id="submit-btn" type="submit">登録</button>
+            <button class="cancel-btn">キャンセル</button>
+          </div>
         </form>
-        <div class="modal-footer">
-          <button class="submit-btn" id="submit-btn" form="modalForm">登録</button>
-          <button class="cancel-btn">キャンセル</button>
-        </div>
       </div>
     </div>
   </main>
