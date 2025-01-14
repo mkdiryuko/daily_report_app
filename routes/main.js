@@ -175,4 +175,70 @@ router.post('/', async (req, res) => {
   })
 });
 
+router.post('/:id', async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const jobno = req.body.jobNo;
+  const job_desc = req.body.job_desc;
+  const person_hour = req.body.person_hour;
+  const note = req.body.note;
+  console.log("jobno", jobno);
+  console.log("job_desc", job_desc);
+  console.log("person_hour", person_hour);
+  
+  // jobnoがjobs DBに存在するかをチェック
+  await knex("jobs")
+  .select('id')
+  .where({"jobno" : jobno})
+  .first()
+  .then(result => {
+    if (result) {
+      jobno_id = result.id;
+      console.log('job_id', jobno_id);
+    } else {
+      console.log('job_idが存在しません');
+    }
+  })
+  .catch(error => {
+    console.log(error);
+  })
+
+  // job_descがjob_desc DBに存在するかをチェック
+  await knex("job_desc")
+  .select("id")
+  .where({"name" : job_desc})
+  .first()
+  .then(result => {
+    if (result) {
+      job_desc_id = result.id;
+      console.log("job_desc_id", job_desc_id);
+    } else {
+      console.log("job_desc_idが存在しません");
+    }
+  })
+  .catch(error => {
+    console.error(error);
+  })
+
+  await knex("daily_report")
+  .where({ id: id})
+  .update(
+    {
+      jobno_id: jobno_id,
+      person_hour: person_hour,
+      job_desc_id: job_desc_id,
+      holiday: 0,
+      note: note
+    }
+  )
+  .then(() => {
+    console.log("フロントエンドに戻るよ");
+    res.status(200).send({ message: '工数を更新しました'});
+  })
+  .catch(error => {
+    console.log("データ更新に失敗したよ");
+    console.error(error);
+    res.status(500).send({ message: `工数の更新に失敗しました`})
+  })
+})
+
 module.exports = router;

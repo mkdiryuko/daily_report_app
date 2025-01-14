@@ -89,11 +89,13 @@ function clearModal() {
   document.getElementById("note").value = "";
 }
 
+const modalForm = document.getElementById('modalForm');
+const submitBtn = document.getElementById('submit-btn');
+
 async function fetchDailyReport(id) {
-  // url.pathname = "updateDailyReport";
-  // url.searchParams.set('id', id);
-  // window.location.href = url.toString();
+  // サーバーから登録内容を取得＆モーダルに表示する
   try {
+    console.log("fetch時のdaily_report_id : ", id);
     const response = await fetch(`main/${id}`);
     const data = await response.json();
     console.log("サーバーから取得した日報：", data)
@@ -119,29 +121,39 @@ async function fetchDailyReport(id) {
     }
 
     document.getElementById("note").value = data.note;
+
+    // サーバーへ編集内容を送信する
+    modalForm.addEventListener('submit', async event => {
+      event.preventDefault();
+    
+      const fd = new FormData(modalForm);
+      console.log("FormDataをつくったよ!!")
+      console.log(fd);
+      console.log(Array.from(fd));
+      const obj = Object.fromEntries(fd);
+      console.log(obj);
+      updateDailyReport(obj, id);
+    })
   } catch (error) {
     console.error("データの取得に失敗しました", error);
   }
 }
 
-document.getElementById('submit-btn').addEventListener('click', async () => {
-  const modalForm = document.getElementById('modalForm');
-  const fd = new FormData(modalForm);
-  fd.append('id', id);
-  
-  updatePost(fd)
-})
-
-async function updatePost(data) {
+async function updateDailyReport(data, id) {
   try {
-    const response = await fetch('updateDailyReport', {
+    const response = await fetch(`main/${id}`, {
       method: 'POST',
-      body: data
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json',
+      },
     })
     const result = await response.json();
-    
+    console.log("レスポンス結果：", result);
+
     if (response.ok) {
       alert(result.message);
+      location.reload();
     } else {
       alert(`エラー: ${ result.message }`);
     }
