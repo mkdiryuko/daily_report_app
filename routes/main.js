@@ -75,6 +75,37 @@ router.get('/', async (req, res, next) => {
   });
 });
 
+router.get('/:id', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  try {
+    const selected_daily_report = knex("daily_report")
+    .join('jobs', 'daily_report.jobno_id','=', 'jobs.id')
+    .join('job_desc', 'daily_report.job_desc_id','=', 'job_desc.id')
+    .where({'daily_report.id': id})
+    .select(
+      'jobs.jobno as jobno',
+      'jobs.name as job_name',
+      'daily_report.person_hour',
+      'job_desc.name as job_desc_name',
+      'daily_report.note'
+    )
+    .first()
+    .then(selected_daily_report => {
+      console.log("取得した日報：", selected_daily_report);
+      res.json(selected_daily_report);
+    })
+    .catch(error => {
+      console.error(error);
+      res.render('index', {
+        isAuthenticated: isAuthenticated,
+        userName: userName
+      })
+    })
+  } catch(error) {
+    console.error("サーバーエラー：", error);
+  }
+})
+
 // TODO 決め打ちしているuser_id, job_dateを変更する
 router.post('/', async (req, res) => {
   const user_id = 1;

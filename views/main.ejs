@@ -29,7 +29,7 @@
     <div class="table-container">
       <div class="table-header">
         <div class="table-title">作業工数</div>
-        <button class="openModal">工数登録</button>
+        <button class="openModal" onclick="openModal('register')">工数登録</button>
       </div>
       <table border="1">
         <thead>
@@ -60,7 +60,7 @@
             <th scope="row">案件</th>
             <td class="item-table_data"><%= daily_reports[i].job_name %></td>
             <td rowspan="2" align="center">
-                <button class="edit-btn openEditModal">編集</button>
+                <button class="edit-btn openModal" id="edit-btn" onclick="openModal('edit', '<%= daily_reports[i].id %>')">編集</button>
             </td>
           </tr>
           <tr>
@@ -74,7 +74,7 @@
     <div id="modal" class="modal">
       <div class="modal-content">
         <span class="close">&times;</span>
-        <div class="modal-header">
+        <div class="modal-header" id="modal-header">
           工数登録
         </div>
         <div class="dropdown">
@@ -95,28 +95,28 @@
           <input type="text" name="jobName" id="jobName" class="form-control" readonly>
           <br>
           <label for="job_desc" class="modal-form__label">作業内容</label>
-          <select name="job_desc" id="job_desc" class="form-control" required>
+          <select id="job_desc_dropdown" name="job_desc" class="form-control" required>
             <option value="" hidden>選択</option>
             <% for(i=0; i<job_descs.length; i++) { %>
               <option><%= job_descs[i].name %></option>
             <% }; %>
           </select>
           <label for="person_hour" class="modal-form__label">工数</label>
-          <select name="person_hour" id="person_hour" class="form-control" required>
-            <option value="" hidden>選択</option>
+          <select id="person_hour_dropdown" name="person_hour" class="form-control" required>
+            <option hidden>選択</option>
             <% for(let hour = 0; hour < 20; hour += 1.0) { %>
               <% for(let min = 0; min < 60; min += 15) { %>
-                <option><%= hour %>:<%= min === 0 ? "00" : min %></option>
+                <option><%= hour.toString().padStart(2, '0') %>:<%= min === 0 ? "00" : min %></option>
               <% } %>
             <% } %>
           </select>
           <br>
           <label for="" class="modal-form__label">備考</label>
-          <textarea name="note" rows="3" cols="40" class="form-control"></textarea>
+          <textarea name="note" rows="3" cols="40" id="note" class="form-control"></textarea>
           <br>
         </form>
         <div class="modal-footer">
-          <button class="submit-btn" form="modalForm">登録</button>
+          <button class="submit-btn" id="submit-btn" form="modalForm">登録</button>
           <button class="cancel-btn">キャンセル</button>
         </div>
       </div>
