@@ -62,15 +62,41 @@ document.addEventListener('click', function(event) {
 
 // 登録・編集モーダルの切替
 function openModal(mode, id=null) {
+  const modalForm = document.getElementById('modalForm');
   const modalHeader = document.getElementById("modal-header");
   const submitBtn = document.getElementById("submit-btn");
 
   // モードに応じてタイトルとボタンを配置する
   if (mode === "edit") {
+    console.log("編集モード突入!!");
     modalHeader.textContent = "工数編集";
     submitBtn.textContent = "更新";
     fetchDailyReport(id);
+    // サーバーへ編集内容を送信する
+    modalForm.addEventListener('submit', async event => {
+      event.preventDefault();
+    
+      const fd = new FormData(modalForm);
+      fd.append("id", id);
+      console.log("FormDataをつくったよ!!")
+      console.log(fd);
+      console.log(Array.from(fd));
+      const obj = Object.fromEntries(fd);
+      console.log(obj);
+      updateDailyReport(obj);
+    })
+  } else if (mode === "delete")  {
+    console.log("削除モード突入!!");
+    modalHeader.textContent = "工数削除";
+    submitBtn.textContent = "削除";
+    fetchDailyReport(id);
+    // サーバーへ削除内容を送信する
+    modalForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      deleteDailyReport(id);
+    })
   } else {
+    console.log("登録モード突入!!");
     modalHeader.textContent = "工数登録";
     submitBtn.textContent = "登録";
     clearModal();
@@ -89,9 +115,6 @@ function clearModal() {
   document.getElementById("note").value = "";
 }
 
-const modalForm = document.getElementById('modalForm');
-const submitBtn = document.getElementById('submit-btn');
-
 async function fetchDailyReport(id) {
   // サーバーから登録内容を取得＆モーダルに表示する
   try {
@@ -101,7 +124,7 @@ async function fetchDailyReport(id) {
     console.log("サーバーから取得した日報：", data)
     document.getElementById("jobNo").value = data.jobno;
     document.getElementById("jobName").value = data.job_name;
-  
+    
     const jobDescDropdown = document.getElementById("job_desc_dropdown");
     jobDescDropdown.options[0].style.display = 'none';
     for (let i = 1; i < jobDescDropdown.options.length; i++) {
@@ -122,26 +145,14 @@ async function fetchDailyReport(id) {
 
     document.getElementById("note").value = data.note;
 
-    // サーバーへ編集内容を送信する
-    modalForm.addEventListener('submit', async event => {
-      event.preventDefault();
-    
-      const fd = new FormData(modalForm);
-      console.log("FormDataをつくったよ!!")
-      console.log(fd);
-      console.log(Array.from(fd));
-      const obj = Object.fromEntries(fd);
-      console.log(obj);
-      updateDailyReport(obj, id);
-    })
   } catch (error) {
     console.error("データの取得に失敗しました", error);
   }
 }
 
-async function updateDailyReport(data, id) {
+async function updateDailyReport(data) {
   try {
-    const response = await fetch(`main/${id}`, {
+    const response = await fetch('main/edit', {
       method: 'POST',
       body: JSON.stringify(data),
       headers: {
@@ -160,5 +171,29 @@ async function updateDailyReport(data, id) {
   } catch (error) {
     console.error(error);
     alert('サーバーエラー：案件の更新に失敗しました')
+  }
+}
+
+async function deleteDailyReport(id) {
+  try {
+    const response = await fetch('main/delete', {
+      method: 'POST',
+      body: JSON.stringify({id: id}),
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+    const result = await response.json();
+    console.log("レスポンス結果：", result);
+
+    if (response.ok) {
+      alert(result.message);
+      location.reload();
+    } else {
+      alert('エラー：', result.message);
+    }
+  } catch (error) {
+    console.error(error);
+    alert('サーバーエラー：案件の削除に失敗しました');
   }
 }

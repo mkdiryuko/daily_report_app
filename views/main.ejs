@@ -61,6 +61,7 @@
             <td class="item-table_data"><%= daily_reports[i].job_name %></td>
             <td rowspan="2" align="center">
                 <button class="edit-btn openModal" id="edit-btn<%= daily_reports[i].id %>" onclick="openModal('edit', '<%= daily_reports[i].id %>')">編集</button>
+                <button class="del-btn openModal" id="del-btn<% daily_reports[i].id %>" onclick="openModal('delete', '<%= daily_reports[i].id %>')">削除</button>
             </td>
           </tr>
           <tr>
