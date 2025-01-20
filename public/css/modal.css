@@ -81,3 +81,18 @@
 .modal-footer .cancel-btn:hover {
   background-color: #ccc;
 } 
+.holiday-modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.holiday-modal.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

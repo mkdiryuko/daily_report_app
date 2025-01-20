@@ -22,14 +22,14 @@
         </div>
       </div>
       <div class="right-group">
-          <button class="openHolidayModal">休暇申請</button>
+        <button class="openHolidayModal" type="button">休暇申請</button>
       </div>
     </div>
 
     <div class="table-container">
       <div class="table-header">
         <div class="table-title">作業工数</div>
-        <button class="openModal" onclick="openModal('register')">工数登録</button>
+        <button class="openModal" onclick="openModal('register')" type="button">工数登録</button>
       </div>
       <table border="1">
         <thead>
@@ -118,11 +118,28 @@
         </form>
         <div class="modal-footer">
           <button class="submit-btn" id="submit-btn" type="submit" form="modalForm">登録</button>
-          <button class="cancel-btn">キャンセル</button>
+          <button class="cancel-btn" type="button">キャンセル</button>
         </div>
       </div>
     </div>
   </main>
+  <div id="holiday-modal", class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <div class="modal-header">
+        休暇申請
+      </div>
+      <form class="modal-form" method="post" action="../routes/main/holiday">
+        <input type="text" value="<%= selectedDate %>" class="form-control" name="date" readonly>
+        <label for="reason" class="modal-form__label">申請理由(未記入でも可)</label>
+        <textarea name="reason" rows="3" cols="40" id="reason" class="form-control" name="reason"></textarea>
+      </form>
+      <div class="modal-footer">
+        <button class="submit-btn" id="holiday-submit-btn" type="submit" form="modalForm">申請</button>
+        <button class="cancel-btn" type="button">キャンセル</button>
+      </div>
+    </div>
+  </div>
   <!-- js -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script type="text/javascript" src="../js/layout.js"></script>
