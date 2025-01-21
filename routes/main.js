@@ -16,7 +16,7 @@ const DBconfig = {
 const connection = mysql.createConnection(DBconfig);
 const today = new Date().toISOString().split('T')[0];
 
-async function getTotalPersonHour(date) {
+async function getDayTotalPersonHour(date) {
   try {
     const result = await knex('daily_report')
     .where({'job_date': date})
@@ -35,7 +35,7 @@ router.get('/', async (req, res, next) => {
   const isAuthenticated = req.session.isAuthenticated;
   const userName = req.session.account?.name;
   const selectedDate = req.query.date || today;
-  const total_person_hour = await getTotalPersonHour(selectedDate);
+  const total_person_hour = await getDayTotalPersonHour(selectedDate);
   await knex('daily_report')
   .join('jobs', 'daily_report.jobno_id','=', 'jobs.id')
   .join('job_desc', 'daily_report.job_desc_id','=', 'job_desc.id')
@@ -253,13 +253,13 @@ router.post('/delete', async (req, res) => {
   .first()
   .delete()
   .then(() => {
-    console.log("案件削除できたよーん");
-    res.status(200).send({ message: '工数を削除したよ～ん'});
+    console.log("案件削除できました");
+    res.status(200).send({ message: '工数を削除しました'});
   })
   .catch(error => {
-    console.log("工数の削除に失敗しちゃった。とほほ..");
+    console.log("工数の削除に失敗しました");
     console.error(error);
-    res.status(500).send({ message: '工数の削除に失敗しちゃった、てへぺろ'});
+    res.status(500).send({ message: '工数の削除に失敗しました'});
   })
 })
 

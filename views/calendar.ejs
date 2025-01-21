@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <%- include('partials/head.ejs'); %>
+  <script src='https://cdn.jsdelivr.net/npm/fullcalendar/index.global.min.js'></script>
+</head>
+<body>
+  <%- include('partials/header.ejs'); %>
+  <%- include('partials/sidebar.ejs'); %>
+
+  <main>
+    <div id="total_person_hour">総時間：</div>
+    <div id="calendar"></div>
+  </main>
+  <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        const calendarEl = document.getElementById('calendar');
+        const totalTimeE1 = document.getElementById('total_person_hour');
+        totalTimeE1.textContent = `総時間：${"<%= total_person_hour_pm %>" || '00:00:00'}`;
+
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'dayGridMonth',
+          headerToolbar: {
+                    left: 'title',
+                    right: 'prev,today,next'
+                },
+          locale: 'ja',
+          events: [
+            
+            {
+              title: 'my event',
+              start: '2025-01-01',
+            }
+          ],
+          dateClick: function(info) {
+            // クリックした日付を取得
+            let clickedDate = info.dateStr;
+            // 遷移先のURLを指定
+            let redirectUrl = `/main?date=${clickedDate}`;
+            // ページをリダイレクト
+            window.location.href = redirectUrl;
+        }
+        })
+        
+        calendar.render()
+
+        const fcButtons = document.querySelectorAll('.fc-button-group button');
+        // < today > 3つのボタンにイベントリスナーを配置
+        fcButtons.forEach(function(fcButton) {
+          fcButton.addEventListener('click', async () => {
+            console.log("イベントリスナーが呼ばれたよ!!");
+            // カレンダーの年月表示がされている箇所のテキスト要素の文字列「YYYY年M月」
+            let yearMonth = document.getElementById("fc-dom-1").textContent;
+            // 年の前の文字列を切り取ることで年を取得
+            let year = yearMonth.substr(0, yearMonth.indexOf('年'));
+            // 年以降の文字列を切り取ることで月を取得
+            let month = yearMonth.substr(yearMonth.indexOf('年') + 1);
+            // 月の文字列が残るため削除
+            month = month.substr(0, month.indexOf('月'));
+            try {
+              const response = await fetch(`calendar/api/total_person_hour?year=${year}&month=${month}`);
+              if (!response.ok) throw new Error('総工数の取得に失敗しました');
+              const data = await response.json();
+              console.log(data);
+              totalTimeE1.textContent = `総時間：${data.total_person_hour_pm || '00:00'}`;
+            } catch (error) {
+              console.error('総工数の取得に失敗しました');
+              totalTimeE1.textContent = '総時間：データの取得に失敗';
+            }
+          })
+        })
+      })
+  </script>
+  <script type="text/javascript" src="../js/layout.js"></script>
+</body>
+</html>
