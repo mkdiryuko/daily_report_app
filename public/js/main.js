@@ -61,6 +61,8 @@ document.addEventListener('click', function(event) {
 })
 
 // 登録・編集モーダルの切替
+// TODO キャンセルと×ボタンにmode初期化処理を実装する
+// TODO 関数名を明確にするopenModalはおかしい。fetchDailyReportではないか？
 function openModal(mode, id=null) {
   const modalForm = document.getElementById('modalForm');
   const modalHeader = document.getElementById("modal-header");
@@ -71,13 +73,13 @@ function openModal(mode, id=null) {
     console.log("編集モード突入!!");
     modalHeader.textContent = "工数編集";
     submitBtn.textContent = "更新";
-    fetchDailyReport(id);
+    fetchDailyReport(id); // idをもとにレコードを取得する
     // サーバーへ編集内容を送信する
     modalForm.addEventListener('submit', async event => {
       event.preventDefault();
-    
+      console.log('編集モード:sumit');
       const fd = new FormData(modalForm);
-      fd.append("id", id);
+      fd.append("id", id); // 日報を識別するidをform dataに追加
       console.log("FormDataをつくったよ!!")
       console.log(fd);
       console.log(Array.from(fd));
@@ -93,6 +95,7 @@ function openModal(mode, id=null) {
     // サーバーへ削除内容を送信する
     modalForm.addEventListener('submit', async event => {
       event.preventDefault();
+      console.log('削除モード:sumit');
       deleteDailyReport(id);
     })
   } else {

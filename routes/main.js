@@ -32,6 +32,7 @@ async function getTotalPersonHour(date) {
 
 // TODOマネージャーがパートナーに応じて、案件を割り当てるので、jobsを自分の案件のみに絞る
 router.get('/', async (req, res, next) => {
+  console.log("---main GET---")
   const isAuthenticated = req.session.isAuthenticated;
   const userName = req.session.account?.name;
   const selectedDate = req.query.date || today;
@@ -47,13 +48,13 @@ router.get('/', async (req, res, next) => {
     'jobs.name as job_name',
     'daily_report.person_hour',
     'job_desc.name as job_desc_name',
-    'daily_report.holiday',
     'daily_report.note'
   )
   .then(daily_reports => {
     return Promise.all([
       knex('jobs').select('*'),
-      knex('job_desc').select('*')
+      knex('job_desc').select('*'),
+      knex('absence').select('date').where({'date': selectedDate})
     ]).then(([jobs, job_descs]) => {
       res.render('main', {
         isAuthenticated: isAuthenticated,
@@ -62,7 +63,7 @@ router.get('/', async (req, res, next) => {
         jobs: jobs,
         job_descs: job_descs,
         selectedDate: selectedDate,
-        total_person_hour: total_person_hour.slice(0, 5)
+        total_person_hour: total_person_hour.slice(0, 5),
       });
     });
   })
@@ -161,7 +162,6 @@ router.post('/', async (req, res) => {
     jobno_id: jobno_id,
     person_hour: person_hour,
     job_desc_id: job_desc_id,
-    holiday: 0,
     note: note
   })
   .then(() => {
@@ -229,7 +229,6 @@ router.post('/edit', async (req, res) => {
       jobno_id: jobno_id,
       person_hour: person_hour,
       job_desc_id: job_desc_id,
-      holiday: 0,
       note: note
     }
   )
@@ -253,13 +252,39 @@ router.post('/delete', async (req, res) => {
   .first()
   .delete()
   .then(() => {
-    console.log("案件削除できたよーん");
-    res.status(200).send({ message: '工数を削除したよ～ん'});
+    console.log("工数を削除しました");
+    res.status(200).send({ message: '工数を削除しました'});
   })
   .catch(error => {
-    console.log("工数の削除に失敗しちゃった。とほほ..");
+    console.log("工数の削除に失敗しました");
     console.error(error);
-    res.status(500).send({ message: '工数の削除に失敗しちゃった、てへぺろ'});
+    res.status(500).send({ message: '工数の削除に失敗しました'});
+  })
+})
+
+router.post('/absence', async (req, res) => {
+  console.log('---休暇申請POST---');
+  const user_id = 1;
+  const date = req.body.date;
+  const reason = req.body.reason;
+  
+  // absenceに業務日報を登録する
+  knex("absence")
+  .insert({
+    user_id: user_id,
+    date: date,
+    reason: reason
+  })
+  .then(() => {
+    res.redirect('/main');
+  })
+  .catch(error => {
+    console.error(error);
+    res.render('index', {
+      title: 'Daily Report App',
+      isAuthenticated: req.session.isAuthenticated,
+      username: req.session.account?.username,
+    })
   })
 })
 

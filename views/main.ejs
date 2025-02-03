@@ -22,7 +22,7 @@
         </div>
       </div>
       <div class="right-group">
-        <button class="openHolidayModal" type="button">休暇申請</button>
+        <button class="openAbsenceModal" type="button">休暇申請</button>
       </div>
     </div>
 
@@ -104,7 +104,7 @@
           </select>
           <label for="person_hour" class="modal-form__label">工数</label>
           <select id="person_hour_dropdown" name="person_hour" class="form-control" required>
-            <option hidden>選択</option>
+            <option value="" hidden>選択</option>
             <% for(let hour = 0; hour < 20; hour += 1.0) { %>
               <% for(let min = 0; min < 60; min += 15) { %>
                 <option><%= hour.toString().padStart(2, '0') %>:<%= min === 0 ? "00" : min %></option>
@@ -123,19 +123,19 @@
       </div>
     </div>
   </main>
-  <div id="holiday-modal", class="modal">
+  <div id="absence-modal", class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
       <div class="modal-header">
         休暇申請
       </div>
-      <form class="modal-form" method="post" action="../routes/main/holiday">
+      <form id="absenceModalForm" class="modal-form" method="post" action="main/absence">
         <input type="text" value="<%= selectedDate %>" class="form-control" name="date" readonly>
         <label for="reason" class="modal-form__label">申請理由(未記入でも可)</label>
         <textarea name="reason" rows="3" cols="40" id="reason" class="form-control" name="reason"></textarea>
       </form>
       <div class="modal-footer">
-        <button class="submit-btn" id="holiday-submit-btn" type="submit" form="modalForm">申請</button>
+        <button class="submit-btn" id="absence-submit-btn" type="submit" form="absenceModalForm">申請</button>
         <button class="cancel-btn" type="button">キャンセル</button>
       </div>
     </div>
