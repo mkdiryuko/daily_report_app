@@ -24,35 +24,11 @@ router.get('/', function (req, res, next) {
   const userName = req.session.account?.name;
   const userEmail = req.session.account?.username;
 
-  if (isAuthenticated) {
-    knex('user')
-    .select('email')
-    .where( { email: userEmail })
-    .first()
-    .then(result => {
-      if (result) {
-        console.log('このユーザーは既に登録されています');
-        return;
-      } else {
-        knex('user')
-        .insert({name: userName, email: userEmail, auth: 0})
-        .then(() => {
-            console.log('新規ユーザーを登録しました')
-            console.log('name : ', userName)
-            console.log('email : ', userEmail)
-          }
-        )
-      }
-    })
-    .catch(error => {
-      console.error(error);
-    })
-  }
   res.render('index', {
     title: '業務日報管理アプリ',
     isAuthenticated: isAuthenticated,
-    userEmail: userName,
-    userName: userEmail
+    userEmail: userEmail,
+    userName: userName
   });
 });
 

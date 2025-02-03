@@ -13,6 +13,7 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 
 const indexRouter = require('./routes/index');
+const mainRouter = require('./routes/main');
 const usersRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
 const addDailyReportRouter = require('./routes/addDailyReport');
@@ -24,6 +25,7 @@ const app = express();
 /**
  * Using express-session middleware for persistent user session. Be sure to
  * familiarize yourself with available options. Visit: https://www.npmjs.com/package/express-session
+ * 永続的なユーザーセッションに express-session ミドルウェアを使用します。利用可能なオプションをよく理解してください。
  */
 app.use(session({
   secret: process.env.EXPRESS_SESSION_SECRET,
@@ -42,7 +44,7 @@ app.set('view engine', 'ejs');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(cookieParser());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
@@ -50,6 +52,7 @@ app.use('/users', usersRouter);
 app.use('/auth', authRouter);
 app.use('/addDailyReport', addDailyReportRouter);
 app.use('/jobMaintenance', jobMaintenanceRouter);
+app.use('/main', mainRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
