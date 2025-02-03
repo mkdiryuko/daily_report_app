@@ -109,7 +109,7 @@ router.get('/:id', (req, res) => {
 })
 
 // TODO 決め打ちしているuser_id, job_dateを変更する
-router.post('/', async (req, res) => {
+router.post('/register', async (req, res) => {
   console.log("---新規登録POST---");
   const user_id = 1;
   const job_date = req.query.date;
@@ -177,13 +177,14 @@ router.post('/', async (req, res) => {
   })
 });
 
-router.post('/edit', async (req, res) => {
+router.post('/edit/:id', async (req, res) => {
   console.log("---編集用POSTルート---");
-  const id = req.body.id;
+  const id = req.params.id;
   const jobno = req.body.jobNo;
   const job_desc = req.body.job_desc;
   const person_hour = req.body.person_hour;
   const note = req.body.note;
+  console.log("user_id", id);
   console.log("jobno", jobno);
   console.log("job_desc", job_desc);
   console.log("person_hour", person_hour);
@@ -233,19 +234,23 @@ router.post('/edit', async (req, res) => {
     }
   )
   .then(() => {
-    console.log("フロントエンドに戻るよ");
-    res.status(200).send({ message: '工数を更新しました'});
+    console.log("工数を更新しました");
+    res.redirect('/main');
   })
   .catch(error => {
     console.log("データ更新に失敗したよ");
     console.error(error);
-    res.status(500).send({ message: `工数の更新に失敗しました`})
+    res.render('index', {
+      title: 'Daily Report App',
+      isAuthenticated: req.session.isAuthenticated,
+      username: req.session.account?.username,
+    })
   })
 })
 
-router.post('/delete', async (req, res) => {
+router.post('/delete/:id', async (req, res) => {
   console.log('---削除POST---');
-  const id = req.body.id;
+  const id = req.params.id;
   console.log("削除するid:", id);
   await knex('daily_report')
   .where({id: id})
@@ -253,7 +258,7 @@ router.post('/delete', async (req, res) => {
   .delete()
   .then(() => {
     console.log("工数を削除しました");
-    res.status(200).send({ message: '工数を削除しました'});
+    res.redirect('/main');
   })
   .catch(error => {
     console.log("工数の削除に失敗しました");

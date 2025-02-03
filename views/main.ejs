@@ -29,7 +29,7 @@
     <div class="table-container">
       <div class="table-header">
         <div class="table-title">作業工数</div>
-        <button class="openModal" onclick="openModal('register')" type="button">工数登録</button>
+        <button class="openModal" id="open-reg-modal-btn" onclick="clearModal()" type="button">工数登録</button>
       </div>
       <table border="1">
         <thead>
@@ -60,8 +60,8 @@
             <th scope="row">案件</th>
             <td class="item-table_data"><%= daily_reports[i].job_name %></td>
             <td rowspan="2" align="center">
-                <button class="edit-btn openModal" id="edit-btn<%= daily_reports[i].id %>" onclick="openModal('edit', '<%= daily_reports[i].id %>')">編集</button>
-                <button class="del-btn openModal" id="del-btn<% daily_reports[i].id %>" onclick="openModal('delete', '<%= daily_reports[i].id %>')">削除</button>
+                <button class="edit-btn openModal" id="open-edit-modal-btn<%= daily_reports[i].id %>" onclick="fetchDailyReport('<%= daily_reports[i].id %>')">編集</button>
+                <button class="del-btn openModal" id="open-del-modal-btn<% daily_reports[i].id %>" onclick="fetchDailyReport('<%= daily_reports[i].id %>')">削除</button>
             </td>
           </tr>
           <tr>
