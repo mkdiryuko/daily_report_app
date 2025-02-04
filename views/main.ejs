@@ -22,14 +22,25 @@
         </div>
       </div>
       <div class="right-group">
-        <button class="openAbsenceModal" type="button">休暇申請</button>
-      </div>
+        <% if (absence) { %>
+          <h4 style="color: red;">休暇申請を受領</h3>
+        <% } %>
+        <% if (daily_reports.length > 0) { %>
+          <button id="open-absence-modal-btn" class="openAbsenceModal" type="button" disabled style="background-color: darkgray;">休暇申請</button>
+        <% } else { %>
+          <button id="open-absence-modal-btn" class="openAbsenceModal" type="button">休暇申請</button>
+        <% } %>
+        </div>
     </div>
 
     <div class="table-container">
       <div class="table-header">
         <div class="table-title">作業工数</div>
-        <button class="openModal" id="open-reg-modal-btn" onclick="clearModal()" type="button">工数登録</button>
+        <% if( absence ) { %>
+          <button class="openModal" id="open-reg-modal-btn" onclick="clearModal()" type="button" disabled style="background-color: darkgray;">工数登録</button>
+        <% } else { %>
+          <button class="openModal" id="open-reg-modal-btn" onclick="clearModal()" type="button">工数登録</button>
+        <% } %>
       </div>
       <table border="1">
         <thead>
@@ -123,10 +134,10 @@
       </div>
     </div>
   </main>
-  <div id="absence-modal", class="modal">
+  <div id="absence-modal", class="modal", data-absence="<%= absence %>">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <div class="modal-header">
+      <div id="absence-modal-header" class="modal-header">
         休暇申請
       </div>
       <form id="absenceModalForm" class="modal-form" method="post" action="main/absence">
