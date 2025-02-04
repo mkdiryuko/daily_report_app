@@ -22,14 +22,25 @@
         </div>
       </div>
       <div class="right-group">
-          <button class="openHolidayModal">休暇申請</button>
-      </div>
+        <% if (absence) { %>
+          <h4 style="color: red;">休暇申請を受領</h3>
+        <% } %>
+        <% if (daily_reports.length > 0) { %>
+          <button id="open-absence-modal-btn" class="openAbsenceModal" type="button" disabled style="background-color: darkgray;">休暇申請</button>
+        <% } else { %>
+          <button id="open-absence-modal-btn" class="openAbsenceModal" type="button">休暇申請</button>
+        <% } %>
+        </div>
     </div>
 
     <div class="table-container">
       <div class="table-header">
         <div class="table-title">作業工数</div>
-        <button class="openModal" onclick="openModal('register')">工数登録</button>
+        <% if( absence ) { %>
+          <button class="openModal" id="open-reg-modal-btn" onclick="clearModal()" type="button" disabled style="background-color: darkgray;">工数登録</button>
+        <% } else { %>
+          <button class="openModal" id="open-reg-modal-btn" onclick="clearModal()" type="button">工数登録</button>
+        <% } %>
       </div>
       <table border="1">
         <thead>
@@ -60,8 +71,8 @@
             <th scope="row">案件</th>
             <td class="item-table_data"><%= daily_reports[i].job_name %></td>
             <td rowspan="2" align="center">
-                <button class="edit-btn openModal" id="edit-btn<%= daily_reports[i].id %>" onclick="openModal('edit', '<%= daily_reports[i].id %>')">編集</button>
-                <button class="del-btn openModal" id="del-btn<% daily_reports[i].id %>" onclick="openModal('delete', '<%= daily_reports[i].id %>')">削除</button>
+                <button class="edit-btn openModal" id="open-edit-modal-btn<%= daily_reports[i].id %>" onclick="fetchDailyReport('<%= daily_reports[i].id %>')">編集</button>
+                <button class="del-btn openModal" id="open-del-modal-btn<% daily_reports[i].id %>" onclick="fetchDailyReport('<%= daily_reports[i].id %>')">削除</button>
             </td>
           </tr>
           <tr>
@@ -104,7 +115,7 @@
           </select>
           <label for="person_hour" class="modal-form__label">工数</label>
           <select id="person_hour_dropdown" name="person_hour" class="form-control" required>
-            <option hidden>選択</option>
+            <option value="" hidden>選択</option>
             <% for(let hour = 0; hour < 20; hour += 1.0) { %>
               <% for(let min = 0; min < 60; min += 15) { %>
                 <option><%= hour.toString().padStart(2, '0') %>:<%= min === 0 ? "00" : min %></option>
@@ -118,11 +129,28 @@
         </form>
         <div class="modal-footer">
           <button class="submit-btn" id="submit-btn" type="submit" form="modalForm">登録</button>
-          <button class="cancel-btn">キャンセル</button>
+          <button class="cancel-btn" type="button">キャンセル</button>
         </div>
       </div>
     </div>
   </main>
+  <div id="absence-modal", class="modal", data-absence="<%= absence %>">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <div id="absence-modal-header" class="modal-header">
+        休暇申請
+      </div>
+      <form id="absenceModalForm" class="modal-form" method="post" action="main/absence">
+        <input type="text" value="<%= selectedDate %>" class="form-control" name="date" readonly>
+        <label for="reason" class="modal-form__label">申請理由(未記入でも可)</label>
+        <textarea name="reason" rows="3" cols="40" id="reason" class="form-control" name="reason"></textarea>
+      </form>
+      <div class="modal-footer">
+        <button class="submit-btn" id="absence-submit-btn" type="submit" form="absenceModalForm">申請</button>
+        <button class="cancel-btn" type="button">キャンセル</button>
+      </div>
+    </div>
+  </div>
   <!-- js -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script type="text/javascript" src="../js/layout.js"></script>

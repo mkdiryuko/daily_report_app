@@ -32,6 +32,7 @@ async function getDayTotalPersonHour(date) {
 
 // TODOマネージャーがパートナーに応じて、案件を割り当てるので、jobsを自分の案件のみに絞る
 router.get('/', async (req, res, next) => {
+  console.log("---main GET---")
   const isAuthenticated = req.session.isAuthenticated;
   const userName = req.session.account?.name;
   const selectedDate = req.query.date || today;
@@ -47,14 +48,14 @@ router.get('/', async (req, res, next) => {
     'jobs.name as job_name',
     'daily_report.person_hour',
     'job_desc.name as job_desc_name',
-    'daily_report.holiday',
     'daily_report.note'
   )
   .then(daily_reports => {
     return Promise.all([
       knex('jobs').select('*'),
-      knex('job_desc').select('*')
-    ]).then(([jobs, job_descs]) => {
+      knex('job_desc').select('*'),
+      knex('absence').select('date').where({'date': selectedDate}).first()
+    ]).then(([jobs, job_descs, absence]) => {
       res.render('main', {
         isAuthenticated: isAuthenticated,
         userName: userName,
@@ -62,7 +63,8 @@ router.get('/', async (req, res, next) => {
         jobs: jobs,
         job_descs: job_descs,
         selectedDate: selectedDate,
-        total_person_hour: total_person_hour.slice(0, 5)
+        total_person_hour: total_person_hour.slice(0, 5),
+        absence: !!absence
       });
     });
   })
@@ -108,10 +110,10 @@ router.get('/:id', (req, res) => {
 })
 
 // TODO 決め打ちしているuser_id, job_dateを変更する
-router.post('/', async (req, res) => {
+router.post('/register/:date', async (req, res) => {
   console.log("---新規登録POST---");
   const user_id = 1;
-  const job_date = req.query.date;
+  const job_date = req.params.date;
   const jobno = req.body.jobNo;
   const job_desc = req.body.job_desc;
   const person_hour = req.body.person_hour;
@@ -161,11 +163,10 @@ router.post('/', async (req, res) => {
     jobno_id: jobno_id,
     person_hour: person_hour,
     job_desc_id: job_desc_id,
-    holiday: 0,
     note: note
   })
   .then(() => {
-    res.redirect('/main');
+    res.redirect(`/main?date=${job_date}`);
   })
   .catch(error => {
     console.error(error);
@@ -177,16 +178,14 @@ router.post('/', async (req, res) => {
   })
 });
 
-router.post('/edit', async (req, res) => {
+router.post('/edit/:id', async (req, res) => {
   console.log("---編集用POSTルート---");
-  const id = req.body.id;
+  const id = req.params.id;
   const jobno = req.body.jobNo;
   const job_desc = req.body.job_desc;
   const person_hour = req.body.person_hour;
   const note = req.body.note;
-  console.log("jobno", jobno);
-  console.log("job_desc", job_desc);
-  console.log("person_hour", person_hour);
+  const job_date = req.query.date;
   
   // jobnoがjobs DBに存在するかをチェック
   await knex("jobs")
@@ -229,37 +228,95 @@ router.post('/edit', async (req, res) => {
       jobno_id: jobno_id,
       person_hour: person_hour,
       job_desc_id: job_desc_id,
-      holiday: 0,
       note: note
     }
   )
   .then(() => {
-    console.log("フロントエンドに戻るよ");
-    res.status(200).send({ message: '工数を更新しました'});
+    console.log("工数を更新しました");
+    res.redirect(`/main?date=${job_date}`);
   })
   .catch(error => {
     console.log("データ更新に失敗したよ");
     console.error(error);
-    res.status(500).send({ message: `工数の更新に失敗しました`})
+    res.render('index', {
+      title: 'Daily Report App',
+      isAuthenticated: req.session.isAuthenticated,
+      username: req.session.account?.username,
+    })
   })
 })
 
-router.post('/delete', async (req, res) => {
+router.post('/delete/:id', async (req, res) => {
   console.log('---削除POST---');
-  const id = req.body.id;
-  console.log("削除するid:", id);
+  const id = req.params.id;
+  const job_date = req.query.date;
+  
   await knex('daily_report')
   .where({id: id})
   .first()
   .delete()
   .then(() => {
-    console.log("案件削除できました");
-    res.status(200).send({ message: '工数を削除しました'});
+    console.log("工数を削除しました");
+    res.redirect(`/main?date=${job_date}`);
   })
   .catch(error => {
     console.log("工数の削除に失敗しました");
     console.error(error);
-    res.status(500).send({ message: '工数の削除に失敗しました'});
+    res.render('index', {
+      title: 'Daily Report App',
+      isAuthenticated: req.session.isAuthenticated,
+      username: req.session.account?.username,
+    })
+  })
+})
+
+router.post('/absence', async (req, res) => {
+  console.log('---休暇申請POST---');
+  const user_id = 1;
+  const date = req.body.date;
+  const reason = req.body.reason;
+  
+  // absenceに休む日を登録する
+  knex("absence")
+  .insert({
+    user_id: user_id,
+    date: date,
+    reason: reason
+  })
+  .then(() => {
+    res.redirect(`/main?date=${date}`);
+  })
+  .catch(error => {
+    console.error(error);
+    res.render('index', {
+      title: 'Daily Report App',
+      isAuthenticated: req.session.isAuthenticated,
+      username: req.session.account?.username,
+    })
+  })
+})
+
+// 休暇申請削除
+router.post('/absence/delete', async (req, res) => {
+  console.log('---休暇取消POST---');
+  const date = req.query.date;
+
+  knex("absence")
+  .where({date: date})
+  .first()
+  .delete()
+  .then(() => {
+    console.log("休暇申請を削除しました");
+    res.redirect(`/main?date=${date}`);
+  })
+  .catch(error => {
+    console.log("休暇申請の削除に失敗しました");
+    console.error(error);
+    res.render('index', {
+      title: 'Daily Report App',
+      isAuthenticated: req.session.isAuthenticated,
+      username: req.session.account?.username,
+    })
   })
 })
 
