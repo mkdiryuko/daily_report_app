@@ -16,7 +16,7 @@ const DBconfig = {
 const connection = mysql.createConnection(DBconfig);
 const today = new Date().toISOString().split('T')[0];
 
-async function getTotalPersonHour(date) {
+async function getDayTotalPersonHour(date) {
   try {
     const result = await knex('daily_report')
     .where({'job_date': date})
@@ -36,7 +36,7 @@ router.get('/', async (req, res, next) => {
   const isAuthenticated = req.session.isAuthenticated;
   const userName = req.session.account?.name;
   const selectedDate = req.query.date || today;
-  const total_person_hour = await getTotalPersonHour(selectedDate);
+  const total_person_hour = await getDayTotalPersonHour(selectedDate);
   await knex('daily_report')
   .join('jobs', 'daily_report.jobno_id','=', 'jobs.id')
   .join('job_desc', 'daily_report.job_desc_id','=', 'job_desc.id')

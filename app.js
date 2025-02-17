@@ -18,6 +18,7 @@ const usersRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
 const addDailyReportRouter = require('./routes/addDailyReport');
 const jobMaintenanceRouter = require('./routes/jobMaintenance');
+const calendarRouter = require('./routes/calendar');
 
 // initialize express
 const app = express();
@@ -53,6 +54,7 @@ app.use('/auth', authRouter);
 app.use('/addDailyReport', addDailyReportRouter);
 app.use('/jobMaintenance', jobMaintenanceRouter);
 app.use('/main', mainRouter);
+app.use('/calendar', calendarRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
