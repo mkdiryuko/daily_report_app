@@ -2,94 +2,219 @@
 <html lang="ja">
 <head>
   <%- include('partials/head.ejs'); %>
-  <script src='https://cdn.jsdelivr.net/npm/fullcalendar/index.global.min.js'></script>
 </head>
 <body>
   <%- include('partials/header.ejs'); %>
   <%- include('partials/sidebar.ejs'); %>
 
   <main>
-    <div id="total_person_hour">総時間：</div>
-    <div id="calendar"></div>
+    <span id="monthTotalContainer">
+      今月の総工数：<span id="monthTotal">--:--</span>
+    </span>
+    <span id="calendar"></span>
   </main>
+  
+  <!-- FullCalendar v6.1.15 の JS -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', async function() {
-      const calendarEl = document.getElementById('calendar');
-      const totalTimeE1 = document.getElementById('total_person_hour');
-      totalTimeE1.textContent = `総時間：${"<%= total_person_hour_pm %>" || '00:00:00'}`;
-      // 総工数/日のAPIリクエスト
-      
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-          initialView: 'dayGridMonth',
-          headerToolbar: {
-                      left: 'title',
-                      right: 'prev,today,next'
-                    },
-          locale: 'ja',
-          
-          eventBackgroundColor: 'white',
-          eventBorderColor: 'white',
-          eventTextColor: 'black',
-          
-          dateClick: function(info) {
-            // クリックした日付を取得
-            let clickedDate = info.dateStr;
-            // 遷移先のURLを指定
-            let redirectUrl = `/main?date=${clickedDate}`;
-            // ページをリダイレクト
-            window.location.href = redirectUrl;
-          }
-        });
-        calendar.render()
-      })
+    document.addEventListener('DOMContentLoaded', async function () {
+      // 各日付の工数と休み情報を保持するオブジェクト
+      let dailyHours = {};
+      let absenceDays = {};
 
-      const fcButtons = document.querySelectorAll('.fc-button-group button');
-      // < today > 3つのボタンにイベントリスナーを配置
-      fcButtons.forEach(function(fcButton) {
-        fcButton.addEventListener('click', async () => {
-          console.log("イベントリスナーが呼ばれたよ!!");
-          // カレンダーの年月表示がされている箇所のテキスト要素の文字列「YYYY年M月」
-          let yearMonth = document.getElementById("fc-dom-1").textContent;
-          // 年の前の文字列を切り取ることで年を取得
-          let year = yearMonth.substr(0, yearMonth.indexOf('年'));
-          // 年以降の文字列を切り取ることで月を取得
-          let month = yearMonth.substr(yearMonth.indexOf('年') + 1);
-          // 月の文字列が残るため削除
-          month = month.substr(0, month.indexOf('月'));
-          try {
-            const response = await fetch(`calendar/api/total_person_hour_pm?year=${year}&month=${month}`);
-            if (!response.ok) throw new Error('総工数の取得に失敗しました');
-            const data = await response.json();
-            console.log(data);
-            totalTimeE1.textContent = `総時間：${data.total_person_hour_pm || '00:00'}`;
-          } catch (error) {
-            console.error('総工数の取得に失敗しました');
-            totalTimeE1.textContent = '総時間：データの取得に失敗';
+      // ============================
+      // APIからデータ取得する関数群
+      // ============================
+      async function fetchMonthData(year, month) {
+        try {
+          const resMonth = await fetch(`/calendar/api/total_person_hour_pm?year=${year}&month=${month}`);
+          if (!resMonth.ok) throw new Error("月の総工数取得エラー");
+          const dataMonth = await resMonth.json();
+          document.getElementById('monthTotal').innerText = dataMonth.total_person_hour_pm;
+        } catch (error) {
+          console.error('月の総工数取得失敗:', error);
+          document.getElementById('monthTotal').innerText = "00:00";
+        }
+      }
+
+      async function fetchDailyData(year, month) {
+        const newDailyHours = {};
+        try {
+          const resDaily = await fetch(`/calendar/api/total_person_hour_pd?year=${year}&month=${month}`);
+          if (!resDaily.ok) throw new Error("各日付の工数取得エラー");
+          const dataDaily = await resDaily.json();
+          dataDaily.forEach(item => {
+            // "HH:MM" 形式に変換して格納
+            newDailyHours[item.job_date] = item.total_person_hour.slice(0, 5);
+          });
+        } catch (error) {
+          console.error('各日付の工数取得失敗:', error);
+        }
+        return newDailyHours;
+      }
+
+      async function fetchAbsenceDay(year, month) {
+        const newAbsenceDays = {};
+        try {
+          const resAbsence = await fetch(`/calendar/api/absence?year=${year}&month=${month}`);
+          if (!resAbsence.ok) throw new Error("休みの日取得エラー");
+          const dataAbsence = await resAbsence.json();
+          dataAbsence.forEach(item => {
+            newAbsenceDays[item.date] = '休み';
+          });
+        } catch (error) {
+          console.error('休みの日取得失敗：', error);
+        }
+        return newAbsenceDays;
+      }
+
+      function formatLocalDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+
+      // ============================
+      // 初期データの取得と設定
+      // ============================
+      const now = new Date();
+      const initialYear = now.getFullYear();
+      const initialMonth = (now.getMonth() + 1).toString().padStart(2, '0');
+
+      await fetchMonthData(initialYear, initialMonth);
+      dailyHours = await fetchDailyData(initialYear, initialMonth);
+      absenceDays = await fetchAbsenceDay(initialYear, initialMonth);
+
+      // ============================
+      // FullCalendarの設定
+      // ============================
+      const calendarEl = document.getElementById('calendar');
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        initialDate: `${initialYear}-${initialMonth}-01`,
+        locale: 'ja',
+        buttonText: {
+          today: '今日'
+        },
+        views: {
+          dayGridMonth: {
+            showNonCurrentDates: false
           }
-        })
-      })
+        },
+        // 日付セルクリック時の処理（例として画面遷移）
+        dateClick: function(info) {
+          console.log('Clicked date:', info.dateStr);
+          window.location.href = `/main?date=${info.dateStr}`;
+        },
+        dayCellContent: function(arg) {
+          // arg.date.getDate()により数値のみを取得して表示
+          return { html: String(arg.date.getDate()) };
+        },
+        // 日付セルが生成されたときの処理
+        dayCellDidMount: function(info) {
+          const dateStr = formatLocalDate(info.date);
+          addDataToCell(info.el, dateStr);
+        },
+        // 表示期間変更時の処理
+        datesSet: async function(info) {
+          const currentDate = calendar.getDate();
+          const newYear = currentDate.getFullYear();
+          const newMonth = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+
+          await fetchMonthData(newYear, newMonth);
+          dailyHours = await fetchDailyData(newYear, newMonth);
+          absenceDays = await fetchAbsenceDay(newYear, newMonth);
+
+          document.querySelectorAll('.fc-daygrid-day').forEach(cell => {
+            const dateStr = cell.getAttribute('data-date');
+            if (!dateStr) return;
+            // 重複表示防止のため既存の情報コンテナを削除
+            const existingInfoContainer = cell.querySelector('.cell-info');
+            if (existingInfoContainer) existingInfoContainer.remove();
+            addDataToCell(cell, dateStr);
+          });
+        }
+      });
+      calendar.render();
+
+      // ============================
+      // セルに工数・休み情報を追加する関数
+      // ============================
+      function addDataToCell(cellEl, dateStr) {
+        // 情報表示用コンテナ（.cell-info）が無ければ作成し、日付番号の直後に配置
+        let infoContainer = cellEl.querySelector('.cell-info');
+        if (!infoContainer) {
+          infoContainer = document.createElement('div');
+          infoContainer.className = 'cell-info';
+          const dayNumberEl = cellEl.querySelector('.fc-daygrid-day-number');
+          if (dayNumberEl) {
+            dayNumberEl.insertAdjacentElement('afterend', infoContainer);
+          } else {
+            cellEl.appendChild(infoContainer);
+          }
+        }
+        // 工数情報がある場合、左揃えで表示
+        if (dailyHours[dateStr]) {
+          const hourSpan = document.createElement('span');
+          hourSpan.className = 'person-hour';
+          hourSpan.innerText = `工数：${dailyHours[dateStr]}`;
+          infoContainer.appendChild(hourSpan);
+        }
+        // 休み情報がある場合（必要に応じて追加）
+        if (absenceDays[dateStr]) {
+          const absenceSpan = document.createElement('span');
+          absenceSpan.className = 'absence-day';
+          absenceSpan.innerText = `${absenceDays[dateStr]}`;
+          infoContainer.appendChild(absenceSpan);
+        }
+      }
+    });
   </script>
+  
   <script type="text/javascript" src="../js/layout.js"></script>
   <style>
-    /*当月以外の日（月カレンダーに一緒に表示される前後の月）*/
+    /* 当月以外の日（前後の月）の文字色 */
     .fc-day-other {
-      .fc-daygrid-day-top, .fc-scrollgrid-sync-inner .fc-col-header-cell-cushion, .fc-list-day-cushion {
-        color: grey;
-      }
+      color: grey;
     }
-
     /* 土曜日 */
     .fc-day-sat {
-      .fc-daygrid-day-top, .fc-scrollgrid-sync-inner .fc-col-header-cell-cushion, .fc-list-day-cushion {
-        color: blue;
-      }
+      color: blue;
     }
-
     /* 日曜日 */
-    .fc-day-sun{
-      .fc-daygrid-day-top, .fc-scrollgrid-sync-inner .fc-col-header-cell-cushion, .fc-list-day-cushion {
-        color: red;
-      }
+    .fc-day-sun {
+      color: red;
+    }
+    /* 情報用コンテナ：日付番号の下に改行表示し、左揃え */
+    .cell-info {
+      display: block;
+      margin-top: 4px;
+      text-align: left;
+    }
+    /* 工数情報：左揃えでブロック表示 */
+    .person-hour {
+      display: block;
+      font-size: 0.8em;
+      color: blue;
+      text-align: left;
+    }
+    /* 休み情報：必要に応じて左揃えで表示 */
+    .absence-day {
+      display: block;
+      font-size: 0.8rem;
+      color: red;
+      text-align: left;
+    }
+    /* カレンダー全体のスタイル */
+    #calendar {
+      max-width: 1000px;
+      margin: 20px;
+    }
+    /* 月の総工数表示 */
+    #monthTotalContainer {
+      font-size: 1.2em;
+      margin-top: 20px;
     }
   </style>
 </body>
