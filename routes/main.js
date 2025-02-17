@@ -173,7 +173,7 @@ router.post('/register/:date', async (req, res) => {
     res.render('index', {
       title: 'Daily Report App',
       isAuthenticated: req.session.isAuthenticated,
-      username: req.session.account?.username,
+      userName: req.session.account?.username,
     })
   })
 });
@@ -241,7 +241,7 @@ router.post('/edit/:id', async (req, res) => {
     res.render('index', {
       title: 'Daily Report App',
       isAuthenticated: req.session.isAuthenticated,
-      username: req.session.account?.username,
+      userName: req.session.account?.username,
     })
   })
 })
@@ -265,7 +265,7 @@ router.post('/delete/:id', async (req, res) => {
     res.render('index', {
       title: 'Daily Report App',
       isAuthenticated: req.session.isAuthenticated,
-      username: req.session.account?.username,
+      userName: req.session.account?.username,
     })
   })
 })
@@ -291,7 +291,7 @@ router.post('/absence', async (req, res) => {
     res.render('index', {
       title: 'Daily Report App',
       isAuthenticated: req.session.isAuthenticated,
-      username: req.session.account?.username,
+      userName: req.session.account?.username,
     })
   })
 })
@@ -315,7 +315,7 @@ router.post('/absence/delete', async (req, res) => {
     res.render('index', {
       title: 'Daily Report App',
       isAuthenticated: req.session.isAuthenticated,
-      username: req.session.account?.username,
+      userName: req.session.account?.username,
     })
   })
 })
