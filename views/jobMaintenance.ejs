@@ -12,6 +12,7 @@
       
       <h4>検索</h4>
       <input type="text" placeholder="検索">
+
       <!-- 案件検索テーブル -->
       <form action="/jobMaintenance/search" method="GET">
         <table border="1">
@@ -24,10 +25,10 @@
             <td><input type="text" name="jobno_search"></td>
             <td><input type="text" name="name_search"></td>
             <td>
-              <label for="start_date">開始日：</label>
-              <input type="date" id="start_date_search" name="start_date_search" >
+              <label for="start_date_search">開始日：</label>
+              <input type="date" id="start_date_search" name="start_date_search">
               ～
-              <label for="end_date">終了日：</label>
+              <label for="end_date_search">終了日：</label>
               <input type="date" id="end_date_search" name="end_date_search">
             </td>
             <td><button type="submit">検索</button></td>
@@ -36,82 +37,78 @@
       </form>
 
       <h4>案件一覧</h4>
-      <button type="button">新規作成</button>
+      <button class="openModal" data-type="register" type="button" onclick="selectModal('register')">新規登録</button>
+
       <!-- 案件一覧テーブル -->
       <table border="1">
-        <tr>
-        <% if (jobs.length == 0) { %>
-          検索条件に合致するレコードがありません
-        <% } else { %>
-          <th>jobno</th><th>案件名</th><th>開始日</th><th>終了日</th>
-          <% for (i=0; i<jobs.length; i++) { %>
-          </tr>
-            <td><%= jobs[i].jobno %></td>
-            <td><%= jobs[i].name %></td>
-            <td><%= jobs[i].start_date %></td>
-            <td><%= jobs[i].end_date %></td>
-            <td><button type="button" style="background-color: rgb(0, 208, 255);">編集</button></td >
-            <td><button type="button" style="background-color: red;">削除</button></td>
+        <% if (jobs.length === 0) { %>
           <tr>
-          <% } %>
+            <td colspan="6">検索条件に合致するレコードがありません</td>
+          </tr>
+        <% } else { %>
+          <thead>
+            <tr>
+              <th>jobno</th>
+              <th>案件名</th>
+              <th>開始日</th>
+              <th>終了日</th>
+              <th>編集</th>
+              <th>削除</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for (let i = 0; i < jobs.length; i++) { %>
+              <tr>
+                <td><%= jobs[i].jobno %></td>
+                <td><%= jobs[i].name %></td>
+                <td><%= jobs[i].start_date %></td>
+                <td><%= jobs[i].end_date %></td>
+                <td>
+                  <button class="openModal" data-type="edit" onclick="selectModal('edit', '<%= jobs[i].id %>')" type="button" style="background-color: rgb(0, 208, 255);">編集</button>
+                </td>
+                <td>
+                  <button class="openModal" data-type="delete" onclick="selectModal('delete', '<%= jobs[i].id %>')" type="button" style="background-color: red;">削除</button>
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
         <% } %>
-        </tr>
       </table>
+
+      <!-- 案件登録・編集・削除モーダル -->
+      <div id="modal" class="modal">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <div class="modal-header" id="modal-header">
+            ####
+          </div>
+          <form id="modalForm" class="modal-form" method="post">
+            <label for="jobno" class="modal-form__label">jobno</label>
+            <input type="text" name="jobno" id="jobNo" class="form-control">
+            <br>
+            <label for="jobName" class="modal-form__label">案件名</label>
+            <input type="text" name="jobName" id="jobName" class="form-control">
+            <br>
+            <label for="start_date" class="modal-form__label">開始日</label>
+            <input type="date" name="start_date" id="startDate" class="form-control">
+            <br>
+            <label for="end_date" class="modal-form__label">終了日</label>
+            <input type="date" name="end_date" id="endDate" class="form-control">
+          </form>
+          <div class="modal-footer">
+            <button class="submit-btn" id="submit-btn" type="submit" form="modalForm">##</button>
+            <button class="cancel-btn" type="button" style="background-color: azure;">キャンセル</button>
+          </div>
+        </div>
+      </div>
+      
     </main>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/list.js/2.3.1/list.min.js"></script>
-  <script src="../js/layout.js"></script>
-  <script>
-    let options = {
-      valueNames: [ 'jobno', 'name', 'start_date', 'end_date' ]
-    };
-    let jobList = new List('jobs', options);
-  </script>
-  <script>
-    // 現在の日付をYYYY-MM-DDの形式で取得
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const formattedDate = `${yyyy}-${mm}-${dd}`;
 
-    const dateInputs = document.querySelectorAll('.date-input');
-    dateInputs.forEach(input => {
-      input.value = formattedDate;
-    });
-  </script>
-  <script>
-    // モーダルの削除ボタンを押す→案件を削除してもいいという命令
-    document.getElementById('deleteJobButton').addEventListener('click', async () => {
-      const recordId = document.getElementById('deleteJobButton').dataset.id;
-
-      try {
-        const response = await fetch(`jobMaintenance/delete`, {
-          method: `POST`,
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ id: recordId })
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          alert(result.message);
-        } else {
-          alert(`エラー: ${ result.message }`);
-        }
-      } catch (error){
-        console.error("Error:", error);
-        alert('案件の削除に失敗しました(DB)');
-      }
-    })
-  </script>
-  <style>
-    .sort.desc:after {
-      content: "▼";
-    }
-
-    .sort.asc:after {
-      content: "▲";
-    }
-  </style>
-</body>
+    <!-- 外部ライブラリとスクリプト -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/list.js/2.3.1/list.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="../js/layout.js"></script>
+    <script type="text/javascript" src="../js/modal.js"></script>
+    <script type="text/javascript" src="../js/jobMaintenance.js"></script>
+  </body>
 </html>
