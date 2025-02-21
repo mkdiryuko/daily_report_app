@@ -22,16 +22,17 @@
             <td><label for="search3">期間</label></td>
           </tr>
           <tr>
-            <td><input type="text" name="jobno_search"></td>
-            <td><input type="text" name="name_search"></td>
+            <td><input type="text" name="jobno_search" value="<%= typeof jobno_search !== 'undefined' ? jobno_search : '' %>"></td>
+            <td><input type="text" name="name_search" value="<%= typeof name_search !== 'undefined' ? name_search : '' %>"></td>
             <td>
               <label for="start_date_search">開始日：</label>
-              <input type="date" id="start_date_search" name="start_date_search">
+              <input type="date" id="start_date_search" name="start_date_search" value="<%= typeof start_date_search !== 'undefined' ? start_date_search : '' %>">
               ～
               <label for="end_date_search">終了日：</label>
-              <input type="date" id="end_date_search" name="end_date_search">
+              <input type="date" id="end_date_search" name="end_date_search" value="<%= typeof end_date_search !== 'undefined' ? end_date_search : '' %>">
             </td>
             <td><button type="submit">検索</button></td>
+            <td><button type="button" id="clear-btn">検索条件クリア</button></td>
           </tr>
         </table>
       </form>
