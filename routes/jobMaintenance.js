@@ -46,6 +46,8 @@ router.get('/', async (req, res) => {
 });
 
 // 案件検索
+// 入力：検索パラメータ（jobno, 案件名, 開始日, 終了日）
+// 機能：案件を検索して検索結果を返す
 router.get('/search', async (req, res) => {
   console.log("---案件検索GET---");
   // クエリパラメータの取得（trimして空文字列も考慮）
@@ -86,9 +88,10 @@ router.get('/search', async (req, res) => {
     console.log("検索結果：", results);
 
     res.render('jobMaintenance', {
+      ...req.query,
       isAuthenticated: req.session.isAuthenticated,
       userName: req.session.account?.name,
-      jobs: results
+      jobs: results,
     });
   } catch (error) {
     console.error("検索エラー：", error);
@@ -125,22 +128,101 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// 案件登録
+// 入力：jobno, 案件名, 開始日, 終了日
+// 機能：案件の登録
+router.post('/register', async (req, res) => {
+  console.log('---案件登録POST---');
+  const jobno = req.body.jobno;
+  const job_name = req.body.jobName;
+  const start_date = req.body.start_date;
+  const end_date = req.body.end_date;
+
+  await knex("jobs")
+  .insert({
+    jobno: jobno,
+    name: job_name,
+    start_date: start_date,
+    end_date: end_date
+  })
+  .then(() => {
+    res.redirect('/jobMaintenance');
+  })
+  .catch(error => {
+    console.error(error);
+    res.render('index', {
+      title: 'Daily Report App',
+      isAuthenticated: req.session.isAuthenticated,
+      userName: req.session.account?.username,
+    })
+  })
+})
+
+// 案件更新
+// 入力：更新対象レコードのid, jobno, 案件名, 開始日, 終了日
+// 機能：登録済み案件の内容を更新する
+router.post('/edit/:id', async (req, res) => {
+  const id = req.params.id; // 更新対象レコードのid
+  const jobno = req.body.jobno;
+  const job_name = req.body.jobName;
+  const start_date = req.body.start_date;
+  const end_date = req.body.end_date;
+
+  if (isNaN(id)) {
+    return res.status(400).send({ message: '有効なIDを指定してください'});
+  }
+
+  await knex('jobs')
+  .where({id: id})
+  .update(
+    {
+      jobno: jobno,
+      name: job_name,
+      start_date: start_date,
+      end_date: end_date
+    }
+  )
+  .then(() => {
+    console.log("案件情報を更新しました");
+    res.redirect('/jobMaintenance')
+  })
+  .catch(error => {
+    console.log("案件の更新に失敗しました");
+    console.error("サーバーエラー：", error);
+    res.render('index', {
+      title: 'Daily Report App',
+      isAuthenticated: req.session.isAuthenticated,
+      userName: req.session.account?.username,
+    })
+  })
+})
+
 // 案件削除
-router.post('/delete', async (req, res) => {
-  const id = parseInt(req.body.id, 10); // 数値変換
+router.post('/delete/:id', (req, res) => {
+  const id = req.params.id; // 削除対象レコードのid
+
   if (isNaN(id)) {
     return res.status(400).send({ message: '有効なIDを指定してください' });
   }
-  try {
-    const deleteRows = await knex('jobs').where('id', id).del();
-    if (deleteRows === 0) {
-      return res.status(404).send({ message: `ID ${id} のレコードは存在しません` });
-    }
-    res.status(200).send({ message: '案件を削除しました' });
-  } catch (error) {
-    console.error("削除エラー：", error);
-    res.status(500).send({ message: '案件の削除に失敗しました' });
-  }
+
+  knex('jobs')
+    .where('id', id)
+    .delete()
+    .then(deleteRows => {
+      if (deleteRows === 0) {
+        return res.status(404).send({ message: `ID ${id} のレコードは存在しません` });
+      }
+      res.redirect('/jobMaintenance');
+    })
+    .catch(error => {
+      console.error("削除エラー：", error);
+      res.render('index', {
+        title: 'Daily Report App',
+        isAuthenticated: req.session.isAuthenticated,
+        userName: req.session.account?.username,
+      })
+    });
 });
+
 
 module.exports = router;
