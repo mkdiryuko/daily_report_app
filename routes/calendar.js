@@ -20,7 +20,7 @@ console.log("今日の日付：", now.toString());
 console.log(`今日の年月 : ${current_year}年 ${current_month}月`)
 
 // 総工数/月を返す関数
-async function getMonthTotalPersonHour(year, month) {
+async function getMonthTotalPersonHour(year, month, user_id) {
   console.log("---総工数/月の計算---(getMonthTotalPersonHour)");
   try {
     const targetMonth = `${year}-${String(month).padStart(2, '0')}`;
@@ -28,6 +28,7 @@ async function getMonthTotalPersonHour(year, month) {
     .select( 
       knex.raw('SEC_TO_TIME(SUM(TIME_TO_SEC(person_hour))) AS total_person_hour')
     )
+    .where({'user_id': user_id})
     .whereRaw("DATE_FORMAT(job_date, '%Y-%m') = ?", [targetMonth]) // 年月でフィルタリング
     const total_person_hour = result[0]?.total_person_hour;
     
@@ -43,10 +44,11 @@ async function getMonthTotalPersonHour(year, month) {
 }
 
 // 総工数/日を返す関数
-async function getTotalPersonHourPerDay(year, month) {
+async function getTotalPersonHourPerDay(year, month, user_id) {
   try {
-    const targetMonth = `${year}-${String(month).padStart(2, '0')}`;
+    const targetMonth = `${year}-${String(month).padStart(2, '0')}`; // 左0詰め
     const results = await knex('daily_report')
+    .where({'user_id': user_id})
     .whereRaw("DATE_FORMAT(job_date, '%Y-%m') = ?", [targetMonth]) // 年月でフィルタリング
     .groupBy("job_date") // 各日付でグループ化
     .select(
@@ -64,10 +66,11 @@ async function getTotalPersonHourPerDay(year, month) {
 }
 
 // 休みの日を返す関数
-async function getAbsenceDays(year, month) {
+async function getAbsenceDays(year, month, user_id) {
   try {
     const targetMonth = `${year}-${String(month).padStart(2, '0')}`;
     const results = await knex('absence')
+    .where({'user_id': user_id})
     .whereRaw("DATE_FORMAT(`date`, '%Y-%m') = ?", [targetMonth])
     .select(
       knex.raw("DATE_FORMAT(date, '%Y-%m-%d') AS date")
@@ -85,17 +88,21 @@ router.get('/', async (req, res) => {
   console.log("---カレンダーGETリクエスト---");
   const isAuthenticated = req.session.isAuthenticated;
   const userName = req.session.account?.name;
+  const userId = req.session.userId;
+  const authName = req.session.authname;
 
   res.render('calendar', {
     isAuthenticated: isAuthenticated,
     userName: userName,
-    total_person_hour_pm: await getMonthTotalPersonHour(current_year, current_month), // 現在の年月の総工数を返す
-    total_person_hour_pd: await getTotalPersonHourPerDay(current_year, current_month) // 日付ごとの総工数を返す
+    authName: authName,
+    total_person_hour_pm: await getMonthTotalPersonHour(current_year, current_month, userId), // 現在の年月の総工数を返す
+    total_person_hour_pd: await getTotalPersonHourPerDay(current_year, current_month, userId) // 日付ごとの総工数を返す
   });
 })
 
 router.get('/api/total_person_hour_pm', async (req, res) => {
   console.log("---総工数/月APIリクエスト---");
+  const userId = req.session.userId;
   const { year, month } = req.query;
   console.log("年：", year, "月：", month);
   
@@ -106,7 +113,7 @@ router.get('/api/total_person_hour_pm', async (req, res) => {
 
   try {
     console.log("総工数/月の計算開始!!");
-    const total_person_hour_pm = await getMonthTotalPersonHour(year, month);
+    const total_person_hour_pm = await getMonthTotalPersonHour(year, month, userId);
     console.log("取得した総工数/月：", total_person_hour_pm);
 
     if (!total_person_hour_pm) {
@@ -121,6 +128,7 @@ router.get('/api/total_person_hour_pm', async (req, res) => {
 
 router.get('/api/total_person_hour_pd', async (req, res) => {
   console.log("---総工数/日APIリクエスト");
+  const userId = req.session.userId;
   const { year, month } = req.query;
   console.log(year,'年', month, '月');
 
@@ -131,7 +139,7 @@ router.get('/api/total_person_hour_pd', async (req, res) => {
 
   try {
     console.log("総工数/日の計算開始!!")
-    const total_person_hour_pd = await getTotalPersonHourPerDay(year, month);
+    const total_person_hour_pd = await getTotalPersonHourPerDay(year, month, userId);
 
     // データ取得失敗時の処理
     if (!total_person_hour_pd) {
@@ -147,6 +155,7 @@ router.get('/api/total_person_hour_pd', async (req, res) => {
 
 router.get('/api/absence', async (req, res) => {
   console.log('---休みの日取得APIリクエスト---');
+  const userId = req.session.userId;
   const { year, month } = req.query;
 
   // yearやmonthが数値以外またはmonthが無効な月だったらエラーを出す
@@ -156,7 +165,7 @@ router.get('/api/absence', async (req, res) => {
 
   try {
     console.log('---休みの日を取得---');
-    const absence_day = await getAbsenceDays(year, month);
+    const absence_day = await getAbsenceDays(year, month, userId);
 
     if (!absence_day) {
       return res.status(500).json({ error: 'Failed to fetch absence day' });
