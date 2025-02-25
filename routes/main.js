@@ -16,10 +16,10 @@ const DBconfig = {
 const connection = mysql.createConnection(DBconfig);
 const today = new Date().toISOString().split('T')[0];
 
-async function getDayTotalPersonHour(date) {
+async function getDayTotalPersonHour(date, user_id) {
   try {
     const result = await knex('daily_report')
-    .where({'job_date': date})
+    .where({'job_date': date, 'user_id': user_id})
     .select(knex.raw('SEC_TO_TIME(SUM(TIME_TO_SEC(person_hour))) AS total_person_hour'))
     if (result[0].total_person_hour === null) {
       return "00:00:00";
@@ -35,12 +35,14 @@ router.get('/', async (req, res, next) => {
   console.log("---main GET---")
   const isAuthenticated = req.session.isAuthenticated;
   const userName = req.session.account?.name;
+  const userId = req.session.userId;
+  const authName = req.session.authname;
   const selectedDate = req.query.date || today;
-  const total_person_hour = await getDayTotalPersonHour(selectedDate);
+  const total_person_hour = await getDayTotalPersonHour(selectedDate, userId);
   await knex('daily_report')
   .join('jobs', 'daily_report.jobno_id','=', 'jobs.id')
   .join('job_desc', 'daily_report.job_desc_id','=', 'job_desc.id')
-  .where({'job_date': selectedDate})
+  .where({'job_date': selectedDate, 'user_id': userId}) // ユーザー個々のレコードを表示
   .select(
     'daily_report.id',
     'daily_report.user_id',
@@ -59,6 +61,7 @@ router.get('/', async (req, res, next) => {
       res.render('main', {
         isAuthenticated: isAuthenticated,
         userName: userName,
+        authName: authName,
         daily_reports: daily_reports,
         jobs: jobs,
         job_descs: job_descs,
@@ -77,11 +80,11 @@ router.get('/', async (req, res, next) => {
   });
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   console.log('---モーダル表示GET---');
   const id = parseInt(req.params.id, 10);
-  try {
-    const selected_daily_report = knex("daily_report")
+  try { 
+    await knex("daily_report")
     .join('jobs', 'daily_report.jobno_id','=', 'jobs.id')
     .join('job_desc', 'daily_report.job_desc_id','=', 'job_desc.id')
     .where({'daily_report.id': id})
@@ -109,10 +112,9 @@ router.get('/:id', (req, res) => {
   }
 })
 
-// TODO 決め打ちしているuser_id, job_dateを変更する
 router.post('/register/:date', async (req, res) => {
   console.log("---新規登録POST---");
-  const user_id = 1;
+  const user_id = req.session.userId;
   const job_date = req.params.date;
   const jobno = req.body.jobNo;
   const job_desc = req.body.job_desc;
@@ -166,7 +168,11 @@ router.post('/register/:date', async (req, res) => {
     note: note
   })
   .then(() => {
-    res.redirect(`/main?date=${job_date}`);
+    req.flash('success', '日報を登録しました');
+    // セッションの保存が完了してからリダイレクトする
+    req.session.save(() => {
+      res.redirect(`/main?date=${job_date}`);
+    })
   })
   .catch(error => {
     console.error(error);
@@ -272,7 +278,7 @@ router.post('/delete/:id', async (req, res) => {
 
 router.post('/absence', async (req, res) => {
   console.log('---休暇申請POST---');
-  const user_id = 1;
+  const user_id = req.session.userId;
   const date = req.body.date;
   const reason = req.body.reason;
   

@@ -8,6 +8,8 @@ require('dotenv').config();
 const path = require('path');
 const express = require('express');
 const session = require('express-session');
+// const flash = require('express-flash');
+const connectFlash = require('connect-flash');
 const createError = require('http-errors');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
@@ -23,10 +25,11 @@ const calendarRouter = require('./routes/calendar');
 // initialize express
 const app = express();
 
+app.use(cookieParser('keyboard cat'));
+
 /**
- * Using express-session middleware for persistent user session. Be sure to
- * familiarize yourself with available options. Visit: https://www.npmjs.com/package/express-session
  * 永続的なユーザーセッションに express-session ミドルウェアを使用します。利用可能なオプションをよく理解してください。
+ * Visit: https://www.npmjs.com/package/express-session
  */
 app.use(session({
   secret: process.env.EXPRESS_SESSION_SECRET,
@@ -35,8 +38,18 @@ app.use(session({
   cookie: {
     httpOnly: true,
     secure: false, // TODO set this to true on production
+    maxAge: 3600000 // クッキーの有効時間：1時間 (3600000ミリ秒)
   }
 }));
+
+// express-flashの設定
+app.use(connectFlash());
+
+// flashメッセージをすべてのビューで使えるようにローカル変数に設定
+app.use((req, res, next) => {
+  res.locals.messages = req.flash();
+  next();
+})
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

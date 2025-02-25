@@ -104,9 +104,24 @@ function updateFormAction(actionUrl, formName) {
   formName.action = actionUrl;
 }
 
+// form validation
+const validateForm = (form) => {
+  if (!form.checkValidity()) {
+    alert('入力エラー：全項目を入力してください');
+    return false;
+  }
+  console.log("エラーなし")
+  return true;
+}
+
 // 登録、編集、削除の3パターンでaction(バックのルート)を変更する
 submitBtn.addEventListener('click', function(event) {
   event.preventDefault(); // デフォルトのフォーム動作を停止
+
+  if (!validateForm(modalForm)){
+    return; // エラーがあれば以降の処理は実行せずに終了
+  }
+
   let actionUrl;
 
   // 登録、編集、削除の3パターンでactionを変更する

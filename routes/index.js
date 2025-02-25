@@ -23,12 +23,14 @@ router.get('/', function (req, res, next) {
   const isAuthenticated = req.session.isAuthenticated;
   const userName = req.session.account?.name;
   const userEmail = req.session.account?.username;
+  const authName = req.session.authname;
 
   res.render('index', {
     title: '業務日報管理アプリ',
     isAuthenticated: isAuthenticated,
     userEmail: userEmail,
-    userName: userName
+    userName: userName,
+    authName: authName
   });
 });
 

@@ -32,6 +32,7 @@ router.get('/', async (req, res) => {
       title: 'Daily Report App',
       isAuthenticated: req.session.isAuthenticated,
       userName: req.session.account?.name,
+      authName: req.session.authname,
       jobs: results,
       // relationJobnoIdList: await checkRelation.checkRelationId("daily_report", "jobno_id", jobno_id_list),
     });
@@ -91,6 +92,7 @@ router.get('/search', async (req, res) => {
       ...req.query,
       isAuthenticated: req.session.isAuthenticated,
       userName: req.session.account?.name,
+      authName: req.session.authname,
       jobs: results,
     });
   } catch (error) {
