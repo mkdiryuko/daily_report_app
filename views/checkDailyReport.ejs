@@ -36,7 +36,7 @@
     <h4>日報一覧</h4>
     <!-- 日報テーブル -->
     <span>総工数：</span>
-    <input type="text" value="<%= total_person_hour %>" readonly>
+    <span id="total_person_hour"><%= total_person_hour %></span>
     <div id="results">
       <% if (daily_reports.length === 0) { %>
         <p>検索条件に合致するレコードがありません</p>

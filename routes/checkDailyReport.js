@@ -20,17 +20,18 @@ const current_year = today.getFullYear();
 const current_month = today.getMonth() + 1;
 const current_day = today.getDate();
 
-async function getTotalPersonHour(year, month, day, user_id) {
+async function getTotalPersonHour(year, month, day, partner_name) {
   try {
     // 条件を設定
-    const query = knex('daily_report')
+    let query = knex('daily_report')
+      .join('user', 'daily_report.user_id', '=', 'user.id') // ユーザー名（後でパートナーの絞り込みに変更）
       .whereRaw('YEAR(job_date) = ?', [year])
       .andWhereRaw('MONTH(job_date) = ?', [month])
       .andWhereRaw('DAY(job_date) = ?', [day]);
     
-    // user_id が指定されている場合は条件に追加
-    if (user_id !== undefined && user_id !== null) {
-      query.andWhere('user_id', user_id);
+    // ユーザー名が指定されている場合は、条件に追加
+    if (partner_name && partner_name.trim() !== "") {
+      query = query.andWhere('user.name', 'like', `%${partner_name}%`);
     }
     
     // 該当レコードの person_hour を秒に変換して合計し、再度時間形式に変換
@@ -126,7 +127,11 @@ router.get('/search', async (req, res) => {
       'daily_report.note'
       );
     console.log(records);
-    res.json(records);
+    let total_person_hour = await getTotalPersonHour(year, month, day, partner_name);
+    res.json({
+      records: records, 
+      total_person_hour: total_person_hour
+    });
   } catch (error) {
     console.error('Search error:', error);
     res.status(500).json({ error: 'Internal server error' });

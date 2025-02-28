@@ -45,8 +45,11 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(response => response.json())
       .then(data => {
         const resultsDiv = document.getElementById('results');
+        const totalPersonHourInput = document.getElementById('total_person_hour');
+        totalPersonHourInput.value = data.total_person_hour;
+
         // テーブル形式に変換して表示
-        if (data.length === 0) {
+        if (data.records.length === 0) {
           resultsDiv.innerHTML = '<p>該当するレコードはありません</p>';
           return;
         }
@@ -54,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let table = '<table border="1">';
         table += '<thead><tr><th>パートナー</th><th>登録日</th><th>jobno</th><th>案件名</th><th>業務内容</th><th>工数</th><th>備考</th></tr></thead>';
         table += '<tbody>';
-        data.forEach(record => {
+        data.records.forEach(record => {
           table += `<tr>
                       <td>${record.partner_name}</td>
                       <td>${record.job_date}</td>
