@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(data => {
         const resultsDiv = document.getElementById('results');
         const totalPersonHourInput = document.getElementById('total_person_hour');
-        totalPersonHourInput.value = data.total_person_hour;
+        totalPersonHourInput.textContent = data.total_person_hour;
 
         // テーブル形式に変換して表示
         if (data.records.length === 0) {
@@ -89,4 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
     updateDays();
     searchRecords();
   });
+
+  // 月全てボタンのイベント
+  document.getElementById('month-btn').addEventListener('click', () => {
+    document.getElementById('daySpinner').value = "";
+    searchRecords();
+  })
 });
