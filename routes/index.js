@@ -23,6 +23,7 @@ router.get('/', function (req, res, next) {
   const isAuthenticated = req.session.isAuthenticated;
   const userName = req.session.account?.name;
   const userEmail = req.session.account?.username;
+  const userAuth = req.session.userAuth;
   const authName = req.session.authname;
 
   res.render('index', {
@@ -30,6 +31,7 @@ router.get('/', function (req, res, next) {
     isAuthenticated: isAuthenticated,
     userEmail: userEmail,
     userName: userName,
+    userAuth: userAuth,
     authName: authName
   });
 });

@@ -2,8 +2,9 @@ require('dotenv').config({path: '../.env.dev'});
 
 const express = require('express');
 const router = express.Router();
-const mysql = require('mysql')
-const knex = require('../db/knex')
+const mysql = require('mysql');
+const knex = require('../db/knex');
+const isAuthenticated = require('../auth/isAuthenticated');
 
 const DBconfig = {
   host: process.env.DB_HOST,
@@ -20,6 +21,8 @@ console.log("今日の日付：", now.toString());
 console.log(`今日の年月 : ${current_year}年 ${current_month}月`)
 
 // 総工数/月を返す関数
+// 入力：年、月、ユーザーID
+// 出力：指定したユーザーの総工数/月
 async function getMonthTotalPersonHour(year, month, user_id) {
   console.log("---総工数/月の計算---(getMonthTotalPersonHour)");
   try {
@@ -44,6 +47,8 @@ async function getMonthTotalPersonHour(year, month, user_id) {
 }
 
 // 総工数/日を返す関数
+// 入力：年、月、ユーザーID
+// 出力：指定したユーザーの総工数/日のリスト
 async function getTotalPersonHourPerDay(year, month, user_id) {
   try {
     const targetMonth = `${year}-${String(month).padStart(2, '0')}`; // 左0詰め
@@ -66,6 +71,8 @@ async function getTotalPersonHourPerDay(year, month, user_id) {
 }
 
 // 休みの日を返す関数
+// 入力：年、月、ユーザーID
+// 出力：指定したユーザーの休みの日のリスト
 async function getAbsenceDays(year, month, user_id) {
   try {
     const targetMonth = `${year}-${String(month).padStart(2, '0')}`;
@@ -84,23 +91,25 @@ async function getAbsenceDays(year, month, user_id) {
   }
 }
 
-router.get('/', async (req, res) => {
+router.get('/', isAuthenticated, async (req, res) => {
   console.log("---カレンダーGETリクエスト---");
   const isAuthenticated = req.session.isAuthenticated;
   const userName = req.session.account?.name;
   const userId = req.session.userId;
+  const userAuth = req.session.userAuth;
   const authName = req.session.authname;
 
   res.render('calendar', {
     isAuthenticated: isAuthenticated,
     userName: userName,
+    userAuth: userAuth,
     authName: authName,
     total_person_hour_pm: await getMonthTotalPersonHour(current_year, current_month, userId), // 現在の年月の総工数を返す
     total_person_hour_pd: await getTotalPersonHourPerDay(current_year, current_month, userId) // 日付ごとの総工数を返す
   });
 })
 
-router.get('/api/total_person_hour_pm', async (req, res) => {
+router.get('/api/total_person_hour_pm', isAuthenticated, async (req, res) => {
   console.log("---総工数/月APIリクエスト---");
   const userId = req.session.userId;
   const { year, month } = req.query;
@@ -126,7 +135,7 @@ router.get('/api/total_person_hour_pm', async (req, res) => {
   }
 })
 
-router.get('/api/total_person_hour_pd', async (req, res) => {
+router.get('/api/total_person_hour_pd', isAuthenticated, async (req, res) => {
   console.log("---総工数/日APIリクエスト");
   const userId = req.session.userId;
   const { year, month } = req.query;
@@ -153,7 +162,7 @@ router.get('/api/total_person_hour_pd', async (req, res) => {
   }
 })
 
-router.get('/api/absence', async (req, res) => {
+router.get('/api/absence', isAuthenticated, async (req, res) => {
   console.log('---休みの日取得APIリクエスト---');
   const userId = req.session.userId;
   const { year, month } = req.query;

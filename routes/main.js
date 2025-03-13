@@ -5,6 +5,7 @@ const router = express.Router();
 const mysql = require('mysql')
 const knex = require('../db/knex')
 const flash = require('connect-flash');
+const isAuthenticated = require('../auth/isAuthenticated');
 
 const DBconfig = {
   host: process.env.DB_HOST,
@@ -16,13 +17,14 @@ const DBconfig = {
 const connection = mysql.createConnection(DBconfig);
 const today = new Date().toISOString().split('T')[0];
 
+// 日付、ユーザーIDを指定して総工数を計算する関数
 async function getDayTotalPersonHour(date, user_id) {
   try {
     const result = await knex('daily_report')
     .where({'job_date': date, 'user_id': user_id})
     .select(knex.raw('SEC_TO_TIME(SUM(TIME_TO_SEC(person_hour))) AS total_person_hour'))
     if (result[0].total_person_hour === null) {
-      return "00:00:00";
+      return "00:00";
     }
     return result[0].total_person_hour;
   } catch (error) {
@@ -31,11 +33,12 @@ async function getDayTotalPersonHour(date, user_id) {
 }
 
 // TODOマネージャーがパートナーに応じて、案件を割り当てるので、jobsを自分の案件のみに絞る
-router.get('/', async (req, res, next) => {
+router.get('/', isAuthenticated, async (req, res, next) => {
   console.log("---main GET---")
   const isAuthenticated = req.session.isAuthenticated;
   const userName = req.session.account?.name;
   const userId = req.session.userId;
+  const userAuth = req.session.userAuth;
   const authName = req.session.authname;
   const selectedDate = req.query.date || today;
   const total_person_hour = await getDayTotalPersonHour(selectedDate, userId);
@@ -61,6 +64,7 @@ router.get('/', async (req, res, next) => {
       res.render('main', {
         isAuthenticated: isAuthenticated,
         userName: userName,
+        userAuth: userAuth,
         authName: authName,
         daily_reports: daily_reports,
         jobs: jobs,
@@ -80,7 +84,7 @@ router.get('/', async (req, res, next) => {
   });
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', isAuthenticated, async (req, res) => {
   console.log('---モーダル表示GET---');
   const id = parseInt(req.params.id, 10);
   try { 
@@ -112,7 +116,7 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-router.post('/register/:date', async (req, res) => {
+router.post('/register/:date', isAuthenticated, async (req, res) => {
   console.log("---新規登録POST---");
   const user_id = req.session.userId;
   const job_date = req.params.date;
@@ -184,7 +188,7 @@ router.post('/register/:date', async (req, res) => {
   })
 });
 
-router.post('/edit/:id', async (req, res) => {
+router.post('/edit/:id', isAuthenticated, async (req, res) => {
   console.log("---編集用POSTルート---");
   const id = req.params.id;
   const jobno = req.body.jobNo;
@@ -252,7 +256,7 @@ router.post('/edit/:id', async (req, res) => {
   })
 })
 
-router.post('/delete/:id', async (req, res) => {
+router.post('/delete/:id', isAuthenticated, async (req, res) => {
   console.log('---削除POST---');
   const id = req.params.id;
   const job_date = req.query.date;
@@ -303,7 +307,7 @@ router.post('/absence', async (req, res) => {
 })
 
 // 休暇申請削除
-router.post('/absence/delete', async (req, res) => {
+router.post('/absence/delete', isAuthenticated, async (req, res) => {
   console.log('---休暇取消POST---');
   const date = req.query.date;
 

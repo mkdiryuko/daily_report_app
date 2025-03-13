@@ -6,6 +6,8 @@ const mysql = require('mysql');
 const knex = require('../db/knex');
 const checkRelation = require('../db/checkRelation');
 const flash = require('connect-flash');
+const isAuthenticated = require('../auth/isAuthenticated');
+const checkAuth = require("../auth/checkAuth");
 
 const DBconfig = {
   host: process.env.DB_HOST,
@@ -114,10 +116,11 @@ function searchByMonth(query, year, month, partner_name) {
 }
 
 // 日報一覧表示
-router.get('/', async (req, res) => {
+router.get('/', isAuthenticated, checkAuth(2), async (req, res) => {
   console.log('---日報一覧 GET---')
   const isAuthenticated = req.session.isAuthenticated;
   const userName = req.session.account?.name;
+  const userAuth = req.session.userAuth;
   const authName = req.session.authname;
   const total_person_hour = await getTotalPersonHourByDay(current_year, current_month, current_day); // 今日の総工数を取得する
 
@@ -143,6 +146,7 @@ router.get('/', async (req, res) => {
       res.render('checkDailyReport', {
         isAuthenticated: isAuthenticated,
         userName: userName,
+        userAuth: userAuth,
         authName: authName,
         daily_reports: daily_reports,
         total_person_hour: total_person_hour
@@ -153,7 +157,9 @@ router.get('/', async (req, res) => {
       res.render('index', {
         title: 'Daily Report App',
         isAuthenticated: req.session.isAuthenticated,
-        userName: req.session.account?.name
+        userName: userName,
+        userAuth: userAuth,
+        authName: authName
       });
     })
 });
@@ -162,7 +168,7 @@ router.get('/', async (req, res) => {
 // 入力：検索パラメータ（年, 月, 日, ユーザーID）
 // 機能：案件の検索
 // 出力：検索結果（id, パートナー名, 作業日, jobno, 案件名, 業務内容, 工数, 備考, 総工数）
-router.get('/search', async (req, res) => {
+router.get('/search', isAuthenticated, checkAuth(2), async (req, res) => {
   console.log("---日報検索GET---");
   try{
     // クエリパラメータの取得
