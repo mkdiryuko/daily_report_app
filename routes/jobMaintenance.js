@@ -1,9 +1,9 @@
-require('dotenv').config({path: '../.env.dev'});
+require('dotenv').config({ path: '../.env.dev' });
 
 const express = require('express');
 const router = express.Router();
-const mysql = require('mysql')
-const knex = require('../db/knex')
+const mysql = require('mysql');
+const knex = require('../db/knex');
 const checkRelation = require('../db/checkRelation');
 const flash = require('connect-flash');
 
@@ -16,60 +16,215 @@ const DBconfig = {
 
 const connection = mysql.createConnection(DBconfig);
 
-router.get('/', async (req, res, next) => {
-  const userName = req.session.account?.name;
+// 案件一覧表示
+router.get('/', async (req, res) => {
+  try {
+    const results = await knex('jobs')
+      .select(
+        'id',
+        'jobno',
+        'name',
+        knex.raw("DATE_FORMAT(start_date, '%Y/%m/%d') AS 'start_date'"),
+        knex.raw("DATE_FORMAT(end_date, '%Y/%m/%d') AS 'end_date'")
+      );
 
-  knex('jobs')
-  .select(
-    'id',
-    'jobno',
-    'name',
-    knex.raw("DATE_FORMAT(start_date, '%Y/%m/%d') AS 'start_date'"),
-    knex.raw("DATE_FORMAT(end_date, '%Y/%m/%d') AS 'end_date'")
-  )
-  .then(async result => {
-    let jobno_id_list = [];
-    for (let i=0; i<result.length; i++) {
-      jobno_id_list.push(result[i].id);
-    };
     res.render('jobMaintenance', {
       title: 'Daily Report App',
       isAuthenticated: req.session.isAuthenticated,
-      username: req.session.account?.username,
-      jobs: result,
-      relationJobnoIdList: await checkRelation.checkRelationId("daily_report", "jobno_id", jobno_id_list),
-      userName: userName
-    })
+      userName: req.session.account?.name,
+      authName: req.session.authname,
+      jobs: results,
+      // relationJobnoIdList: await checkRelation.checkRelationId("daily_report", "jobno_id", jobno_id_list),
+    });
+  } catch (error) {
+    console.error(error);
+    res.render('index', {
+      title: 'Daily Report App',
+      isAuthenticated: req.session.isAuthenticated,
+      userName: req.session.account?.name
+    });
+  }
+});
+
+// 案件検索
+// 入力：検索パラメータ（jobno, 案件名, 開始日, 終了日）
+// 機能：案件を検索して検索結果を返す
+router.get('/search', async (req, res) => {
+  console.log("---案件検索GET---");
+  // クエリパラメータの取得（trimして空文字列も考慮）
+  const jobno_search = req.query.jobno_search?.trim();
+  const name_search = req.query.name_search?.trim();
+  const start_date_search = req.query.start_date_search?.trim();
+  const end_date_search = req.query.end_date_search?.trim();
+
+  console.log({ jobno_search, name_search, start_date_search, end_date_search });
+
+  try {
+    const query = knex('jobs');
+
+    // jobno の部分一致検索
+    if (jobno_search) {
+      query.where('jobno', 'like', `%${jobno_search}%`);
+    }
+    // 案件名の部分一致検索
+    if (name_search) {
+      query.where('name', 'like', `%${name_search}%`);
+    }
+    // 開始日の検索：指定日以降
+    if (start_date_search) {
+      query.where('start_date', '>=', start_date_search);
+    }
+    // 終了日の検索：指定日以前
+    if (end_date_search) {
+      query.where('end_date', '<=', end_date_search);
+    }
+
+    const results = await query.select(
+      'id',
+      'jobno',
+      'name',
+      knex.raw("DATE_FORMAT(start_date, '%Y/%m/%d') AS 'start_date'"),
+      knex.raw("DATE_FORMAT(end_date, '%Y/%m/%d') AS 'end_date'")
+    );
+    console.log("検索結果：", results);
+
+    res.render('jobMaintenance', {
+      ...req.query,
+      isAuthenticated: req.session.isAuthenticated,
+      userName: req.session.account?.name,
+      authName: req.session.authname,
+      jobs: results,
+    });
+  } catch (error) {
+    console.error("検索エラー：", error);
+    res.render('index', {
+      isAuthenticated: req.session.isAuthenticated,
+      userName: req.session.account?.name
+    });
+  }
+});
+
+// 案件モーダル表示（ID 指定の案件取得）
+router.get('/:id', async (req, res) => {
+  console.log('---案件モーダル表示GET---');
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    console.error("無効なIDが渡されました:", req.params.id);
+    return res.status(400).json({ error: "Invalid id parameter" });
+  }
+  try {
+    const job = await knex("jobs")
+      .where({ id: id })
+      .select(
+        'jobno',
+        'name',
+        knex.raw("DATE_FORMAT(start_date, '%Y-%m-%d') AS 'start_date'"),
+        knex.raw("DATE_FORMAT(end_date, '%Y-%m-%d') AS 'end_date'")
+      )
+      .first();
+    console.log("取得した案件：", job);
+    res.json(job);
+  } catch (error) {
+    console.error("データ取得エラー：", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// 案件登録
+// 入力：jobno, 案件名, 開始日, 終了日
+// 機能：案件の登録
+router.post('/register', async (req, res) => {
+  console.log('---案件登録POST---');
+  const jobno = req.body.jobno;
+  const job_name = req.body.jobName;
+  const start_date = req.body.start_date;
+  const end_date = req.body.end_date;
+
+  await knex("jobs")
+  .insert({
+    jobno: jobno,
+    name: job_name,
+    start_date: start_date,
+    end_date: end_date
+  })
+  .then(() => {
+    res.redirect('/jobMaintenance');
   })
   .catch(error => {
     console.error(error);
     res.render('index', {
       title: 'Daily Report App',
       isAuthenticated: req.session.isAuthenticated,
-      userName: userName
+      userName: req.session.account?.username,
     })
   })
-});
+})
+
+// 案件更新
+// 入力：更新対象レコードのid, jobno, 案件名, 開始日, 終了日
+// 機能：登録済み案件の内容を更新する
+router.post('/edit/:id', async (req, res) => {
+  const id = req.params.id; // 更新対象レコードのid
+  const jobno = req.body.jobno;
+  const job_name = req.body.jobName;
+  const start_date = req.body.start_date;
+  const end_date = req.body.end_date;
+
+  if (isNaN(id)) {
+    return res.status(400).send({ message: '有効なIDを指定してください'});
+  }
+
+  await knex('jobs')
+  .where({id: id})
+  .update(
+    {
+      jobno: jobno,
+      name: job_name,
+      start_date: start_date,
+      end_date: end_date
+    }
+  )
+  .then(() => {
+    console.log("案件情報を更新しました");
+    res.redirect('/jobMaintenance')
+  })
+  .catch(error => {
+    console.log("案件の更新に失敗しました");
+    console.error("サーバーエラー：", error);
+    res.render('index', {
+      title: 'Daily Report App',
+      isAuthenticated: req.session.isAuthenticated,
+      userName: req.session.account?.username,
+    })
+  })
+})
 
 // 案件削除
-router.post('/delete', async (req, res) => {
-  const id = req.body.id; // クライアントから送信されたjob_idを取得
-  
-  if (!id) {
-    return res.status(400).send({ message: 'ID is required' });
-  }
-  try {
-    const deleteRows = await knex('jobs').where('id', id).del();
-    if (deleteRows === 0) {
-      return res.status(404).send({ message : `No record found with ID ${id}` })
-    }
-    res.status(200).send({ message: '案件を削除しました' });
+router.post('/delete/:id', (req, res) => {
+  const id = req.params.id; // 削除対象レコードのid
 
-  } catch (error) {
-    console.error(error);
-    res.status(500).send({ message: `案件の削除に失敗しました` })
+  if (isNaN(id)) {
+    return res.status(400).send({ message: '有効なIDを指定してください' });
   }
-})
+
+  knex('jobs')
+    .where('id', id)
+    .delete()
+    .then(deleteRows => {
+      if (deleteRows === 0) {
+        return res.status(404).send({ message: `ID ${id} のレコードは存在しません` });
+      }
+      res.redirect('/jobMaintenance');
+    })
+    .catch(error => {
+      console.error("削除エラー：", error);
+      res.render('index', {
+        title: 'Daily Report App',
+        isAuthenticated: req.session.isAuthenticated,
+        userName: req.session.account?.username,
+      })
+    });
+});
 
 
 module.exports = router;

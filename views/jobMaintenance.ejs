@@ -1,203 +1,115 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
   <head>
     <%- include('partials/head.ejs'); %>
+    <link rel="stylesheet" href="../css/modal.css">
   </head>
   <body>
     <%- include('partials/header.ejs'); %>
     <%- include('partials/sidebar.ejs'); %>
     <main>
-      <h2>案件管理</h2>
-        <div id="jobs">
-          <input class="search mb-2" placeholder="キーワード検索" />
-          <table class="table table-borderless">
+      <h3>案件管理</h3>
+      
+      <h4>検索</h4>
+      <input type="text" placeholder="検索">
+
+      <!-- 案件検索テーブル -->
+      <form action="/jobMaintenance/search" method="GET">
+        <table border="1">
+          <tr>
+            <td><label for="jobno_search">jobno</label></td>
+            <td><label for="name_search">案件名</label></td>
+            <td><label for="search3">期間</label></td>
+          </tr>
+          <tr>
+            <td><input type="text" name="jobno_search" value="<%= typeof jobno_search !== 'undefined' ? jobno_search : '' %>"></td>
+            <td><input type="text" name="name_search" value="<%= typeof name_search !== 'undefined' ? name_search : '' %>"></td>
+            <td>
+              <label for="start_date_search">開始日：</label>
+              <input type="date" id="start_date_search" name="start_date_search" value="<%= typeof start_date_search !== 'undefined' ? start_date_search : '' %>">
+              ～
+              <label for="end_date_search">終了日：</label>
+              <input type="date" id="end_date_search" name="end_date_search" value="<%= typeof end_date_search !== 'undefined' ? end_date_search : '' %>">
+            </td>
+            <td><button type="submit">検索</button></td>
+            <td><button type="button" id="clear-btn">検索条件クリア</button></td>
+          </tr>
+        </table>
+      </form>
+
+      <h4>案件一覧</h4>
+      <button class="openModal" data-type="register" type="button" onclick="selectModal('register')">新規登録</button>
+
+      <!-- 案件一覧テーブル -->
+      <table border="1">
+        <% if (jobs.length === 0) { %>
+          <tr>
+            <td colspan="6">検索条件に合致するレコードがありません</td>
+          </tr>
+        <% } else { %>
+          <thead>
             <tr>
               <th>jobno</th>
-              <td><input type="text" value=""></td>
-              <th>開始日</th>
-              <td><input type="date" name="date" class="date-input"></td>
-              <td>
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="flexRadioStart" id="flexRadioStart1">
-                    <label class="form-check-label" for="flexRadioStart1">
-                      以前
-                    </label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="flexRadioStart" id="flexRadioStart2" checked>
-                    <label class="form-check-label" for="flexRadioStart2">
-                      以後
-                    </label>
-                  </div>
-              </td>
-              <td><button>検索</button></td>
-            </tr>
-            <tr>
               <th>案件名</th>
-              <td><input type="text"></td>
+              <th>開始日</th>
               <th>終了日</th>
-              <td><input type="date" name="date" class="date-input"></td>
-              <td>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="flexRadioEnd" id="flexRadioEnd1">
-                  <label class="form-check-label" for="flexRadioEnd1">
-                    以前
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="flexRadioEnd" id="flexRadioEnd2" checked>
-                  <label class="form-check-label" for="flexRadioEnd2">
-                    以後
-                  </label>
-                </div>
-              </td>
+              <th>編集</th>
+              <th>削除</th>
             </tr>
-          </table>
-          <table class="table table-striped table-hover table-bordered">
-            <thead>
+          </thead>
+          <tbody>
+            <% for (let i = 0; i < jobs.length; i++) { %>
               <tr>
-                <th scope="col" data-sort="jobno" class="sort">jobno</th>
-                <th scope="col" data-sort="name">案件名</th>
-                <th scope="col" data-sort="start_date" class="sort">開始日</th>
-                <th scope="col" data-sort="end_date" class="sort">終了日</th>
-                <th scope="col"></th>
-                <th scope="col"></th>
+                <td><%= jobs[i].jobno %></td>
+                <td><%= jobs[i].name %></td>
+                <td><%= jobs[i].start_date %></td>
+                <td><%= jobs[i].end_date %></td>
+                <td>
+                  <button class="openModal" data-type="edit" onclick="selectModal('edit', '<%= jobs[i].id %>')" type="button" style="background-color: rgb(0, 208, 255);">編集</button>
+                </td>
+                <td>
+                  <button class="openModal" data-type="delete" onclick="selectModal('delete', '<%= jobs[i].id %>')" type="button" style="background-color: red;">削除</button>
+                </td>
               </tr>
-            </thead>
-              <tbody class="list">
-                  <% for (i=0; i<jobs.length; i++) { %>
-                    <tr>
-                      <td class="jobno"><%= jobs[i].jobno %></td>
-                      <td class="name"><%= jobs[i].name %></td>
-                      <td class="start_date"><%= jobs[i].start_date %></td>
-                      <td class="end_date"><%= jobs[i].end_date %></td>
-                      <td>
-                        <button type="button" class="btn btn-primary w-100 edit">
-                          編集
-                        </button>
-                      </td>
-                      <td>
-                        <button type="button" class="btn btn-danger w-100 delete" data-bs-toggle="modal" data-bs-target="#deleteJobModal<%= i %>">
-                          削除
-                        </button>
-                        <!-- 削除モーダル -->
-                        <div class="modal fade" id="deleteJobModal<%= i %>" tabindex="-1" aria-labelledby="deleteJobModalLabel<%= i %>" aria-hidden="true">
-                          <div class="modal-dialog">
-                            <div class="modal-content">
-                              <div class="modal-header">
-                                <h4 class="modal-title" id="deleteJobModalLabel<%= i %>">
-                                  本当に削除してもよろしいですか？<br>
-                                  <% if (relationJobnoIdList.includes(jobs[i].id.toString())) { %>
-                                    <font style="color: red;">(※)該当案件での日報登録が存在します</font>
-                                  <% }; %>
-                                </h4>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                              </div>
-                              <div class="modal-body">
-                                <div class="container">
-                                  <div class="row mb-2">
-                                    <div class="col-3">
-                                      <label>jobno</label>
-                                    </div>
-                                    <div class="col">
-                                      <input type="text" value="<%= jobs[i].jobno %>" readonly>
-                                    </div>
-                                  </div>
-                                  <div class="row mb-2">
-                                    <div class="col-3">
-                                      <label>案件名</label>
-                                    </div>
-                                    <div class="col">
-                                      <input type="text" value="<%= jobs[i].name %>" readonly>
-                                    </div>
-                                  </div>
-                                  <div class="row mb-2">
-                                    <div class="col-3">
-                                      <label>開始日</label>
-                                    </div>
-                                    <div class="col">
-                                      <input type="date" value="<%= jobs[i].start_date.replace(/\//g, '-') %>" readonly>
-                                    </div>
-                                  </div>
-                                  <div class="row mb-2">
-                                    <div class="col-3">
-                                      <label>終了日</label>
-                                    </div>
-                                    <div class="col">
-                                      <input type="date" value="<%= jobs[i].end_date.replace(/\//g, '-') %>" readonly>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                                <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
-                                <button type="button" class="btn btn-danger" id="deleteJobButton" data-id="<%= jobs[i].id %>">削除</button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  <% }; %>
-              </tbody>
-            </table>
+            <% } %>
+          </tbody>
+        <% } %>
+      </table>
+
+      <!-- 案件登録・編集・削除モーダル -->
+      <div id="modal" class="modal">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <div class="modal-header" id="modal-header">
+            ####
+          </div>
+          <form id="modalForm" class="modal-form" method="post">
+            <label for="jobno" class="modal-form__label">jobno</label>
+            <input type="text" name="jobno" id="jobNo" class="form-control">
+            <br>
+            <label for="jobName" class="modal-form__label">案件名</label>
+            <input type="text" name="jobName" id="jobName" class="form-control">
+            <br>
+            <label for="start_date" class="modal-form__label">開始日</label>
+            <input type="date" name="start_date" id="startDate" class="form-control">
+            <br>
+            <label for="end_date" class="modal-form__label">終了日</label>
+            <input type="date" name="end_date" id="endDate" class="form-control">
+          </form>
+          <div class="modal-footer">
+            <button class="submit-btn" id="submit-btn" type="submit" form="modalForm">##</button>
+            <button class="cancel-btn" type="button" style="background-color: azure;">キャンセル</button>
+          </div>
         </div>
-  </main>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/list.js/2.3.1/list.min.js"></script>
-  <script src="../js/layout.js"></script>
-  <script>
-    let options = {
-      valueNames: [ 'jobno', 'name', 'start_date', 'end_date' ]
-    };
-    let jobList = new List('jobs', options);
-  </script>
-  <script>
-    // 現在の日付をYYYY-MM-DDの形式で取得
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const formattedDate = `${yyyy}-${mm}-${dd}`;
+      </div>
+      
+    </main>
 
-    const dateInputs = document.querySelectorAll('.date-input');
-    dateInputs.forEach(input => {
-      input.value = formattedDate;
-    });
-  </script>
-  <script>
-    // モーダルの削除ボタンを押す→案件を削除してもいいという命令
-    document.getElementById('deleteJobButton').addEventListener('click', async () => {
-      const recordId = document.getElementById('deleteJobButton').dataset.id;
-
-      try {
-        const response = await fetch(`jobMaintenance/delete`, {
-          method: `POST`,
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ id: recordId })
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          alert(result.message);
-        } else {
-          alert(`エラー: ${ result.message }`);
-        }
-      } catch (error){
-        console.error("Error:", error);
-        alert('案件の削除に失敗しました(DB)');
-      }
-    })
-  </script>
-  <style>
-    .sort.desc:after {
-      content: "▼";
-    }
-
-    .sort.asc:after {
-      content: "▲";
-    }
-  </style>
-</body>
+    <!-- 外部ライブラリとスクリプト -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/list.js/2.3.1/list.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="../js/layout.js"></script>
+    <script type="text/javascript" src="../js/modal.js"></script>
+    <script type="text/javascript" src="../js/jobMaintenance.js"></script>
+  </body>
 </html>

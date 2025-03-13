@@ -160,25 +160,41 @@ class AuthProvider {
         req.session.account = tokenResponse.account;
         req.session.isAuthenticated = true;
 
-        // DBにユーザー名とメールアドレスを登録する
-        knex('user')
-        .where( {email: tokenResponse.account.username })
-        .first()
-        .then(result => {
-          if (result) {
-            console.log('登録済みのユーザー', result)
-            return;
-          } else {
-            knex('user')
-            .insert({ name: tokenResponse.account?.name, email: tokenResponse.account?.username, auth: 0 })
-            .then(() => {
-              console.log('新規ユーザーを登録しました!!');
-            })
-          }
-        })
-        .catch(error => {
-          console.error(error);
-        })
+        // DBにユーザーが存在するかチェックし、必要なら登録する
+        let user = await knex('user')
+        .where({ email: tokenResponse.account.username })
+        .first();
+
+        if (!user) {
+          await knex('user').insert({
+            name: tokenResponse.account?.name,
+            email: tokenResponse.account?.username,
+            auth: 0
+          });
+          // 再度、DBからユーザー情報を取得
+          user = await knex('user')
+            .where({ email: tokenResponse.account.username })
+            .first();
+        }
+
+        // セッションに user_id を格納する
+        req.session.userId = user.id;
+
+        // セッションに権限名を格納する
+        switch ( user.auth ) {
+          case 0:
+            req.session.authname = "パートナー";
+            break;
+          case 1:
+            req.session.authname = "マネージャー";
+            break;
+          case 2:
+            req.session.authname = "管理者";
+            break;
+          default:
+            req.session.authname = "パートナー";
+            break;
+        }
 
         const state = JSON.parse(this.cryptoProvider.base64Decode(req.body.state));
         res.redirect(state.successRedirect);

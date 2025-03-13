@@ -1,6 +1,7 @@
 // URLを取得
 const url = new URL(window.location.href);
 const dateInput = document.getElementById('date-input');
+const date = dateInput.value; // 現在の日付
 
 // クエリパラメータに日付を設定
 function updateDate(days) {
@@ -99,13 +100,28 @@ document.addEventListener('click', function(event) {
 })
 
 // ボタンがクリックされたときにフォームのactionを変更する関数
-function updateFormAction(actionUrl) {
-  modalForm.action = actionUrl;
+function updateFormAction(actionUrl, formName) {
+  formName.action = actionUrl;
+}
+
+// form validation
+const validateForm = (form) => {
+  if (!form.checkValidity()) {
+    alert('入力エラー：全項目を入力してください');
+    return false;
+  }
+  console.log("エラーなし")
+  return true;
 }
 
 // 登録、編集、削除の3パターンでaction(バックのルート)を変更する
 submitBtn.addEventListener('click', function(event) {
   event.preventDefault(); // デフォルトのフォーム動作を停止
+
+  if (!validateForm(modalForm)){
+    return; // エラーがあれば以降の処理は実行せずに終了
+  }
+
   let actionUrl;
 
   // 登録、編集、削除の3パターンでactionを変更する
@@ -113,19 +129,19 @@ submitBtn.addEventListener('click', function(event) {
   console.log("モーダルフォームの提出ボタンの名前：", mode);
   switch( mode ) {
     case '登録':
-      actionUrl = 'main/register';
+      actionUrl = `main/register/${date}`;
       break;
     case '更新':
-      actionUrl = `main/edit/${daily_report_id}`;
+      actionUrl = `main/edit/${daily_report_id}?date=${date}`;
       break;
     case '削除':
-      actionUrl = `main/delete/${daily_report_id}`;
+      actionUrl = `main/delete/${daily_report_id}?date=${date}`;
       break;
     default:
       actionUrl = '#';
       break;
   }
-  updateFormAction(actionUrl);
+  updateFormAction(actionUrl, modalForm);
 
   modalForm.submit(); // フォームを送信
 })
@@ -175,3 +191,25 @@ async function fetchDailyReport(id) {
   }
 }
 // ---------------------------------------------------------------------
+
+// ---休暇申請モーダル--------------------
+const openAbsenceModalBtn = document.getElementById("open-absence-modal-btn");
+const absenceModal = document.getElementById("absence-modal");
+const absenceModalHeader = document.getElementById("absence-modal-header");
+const absenceModalForm = document.getElementById("absenceModalForm");
+const absenceSubmitBtn = document.getElementById("absence-submit-btn");
+
+console.log(absenceModal.dataset.absence);
+if (JSON.parse(absenceModal.dataset.absence)) {
+  openAbsenceModalBtn.innerText = "休暇取消";
+  openAbsenceModalBtn.style.backgroundColor = "red";
+  absenceModalHeader.textContent = "休暇申請取消";
+  absenceSubmitBtn.innerText = "取消";
+  absenceSubmitBtn.style.backgroundColor = "red";
+
+  absenceSubmitBtn.addEventListener('click', function(event) {
+    event.preventDefault();
+    updateFormAction(`main/absence/delete?date=${date}`, absenceModalForm)
+    absenceModalForm.submit();
+  })
+}
