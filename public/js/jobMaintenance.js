@@ -81,9 +81,23 @@ const updateFormAction = (actionUrl) => {
   modalForm.action = actionUrl;
 };
 
+// form validation
+const validateForm = (form) => {
+  if (!form.checkValidity()) {
+    alert('入力エラー：全項目を入力してください');
+    return false;
+  }
+  console.log("エラーなし")
+  return true;
+}
+
 // モーダルの「提出」ボタン押下時の処理
 modalSubmitBtn.addEventListener('click', event => {
-  event.preventDefault();
+  event.preventDefault(); // デフォルトのフォーム動作を停止
+
+  if (!validateForm(modalForm)) {
+    return; // エラーがあれば以降の処理は実行せずに終了 
+  }
   
   const dataType = event.target.dataset.type;
   let actionUrl = '#';
