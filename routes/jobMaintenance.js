@@ -101,6 +101,7 @@ router.get('/search', isAuthenticated, checkAuth(1), async (req, res) => {
       ...req.query,
       isAuthenticated: req.session.isAuthenticated,
       userName: req.session.account?.name,
+      userAuth: req.session.userAuth,
       authName: req.session.authname,
       jobs: results,
     });
