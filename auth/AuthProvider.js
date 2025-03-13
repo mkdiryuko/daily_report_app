@@ -179,6 +179,8 @@ class AuthProvider {
 
         // セッションに user_id を格納する
         req.session.userId = user.id;
+        // セッションに auth を格納する
+        req.session.userAuth = user.auth;
 
         // セッションに権限名を格納する
         switch ( user.auth ) {

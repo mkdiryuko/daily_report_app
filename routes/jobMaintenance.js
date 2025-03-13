@@ -6,6 +6,8 @@ const mysql = require('mysql');
 const knex = require('../db/knex');
 const checkRelation = require('../db/checkRelation');
 const flash = require('connect-flash');
+const isAuthenticated = require('../auth/isAuthenticated');
+const checkAuth = require("../auth/checkAuth");
 
 const DBconfig = {
   host: process.env.DB_HOST,
@@ -17,7 +19,13 @@ const DBconfig = {
 const connection = mysql.createConnection(DBconfig);
 
 // 案件一覧表示
-router.get('/', async (req, res) => {
+router.get('/', isAuthenticated, checkAuth(1), async (req, res) => {
+  console.log('---案件一覧GET---');
+  const isAuthenticated = req.session.isAuthenticated;
+  const userName = req.session.account?.name;
+  const userAuth = req.session.userAuth;
+  const authName = req.session.authname;
+
   try {
     const results = await knex('jobs')
       .select(
@@ -30,9 +38,10 @@ router.get('/', async (req, res) => {
 
     res.render('jobMaintenance', {
       title: 'Daily Report App',
-      isAuthenticated: req.session.isAuthenticated,
-      userName: req.session.account?.name,
-      authName: req.session.authname,
+      isAuthenticated: isAuthenticated,
+      userName: userName,
+      userAuth: userAuth,
+      authName: authName,
       jobs: results,
       // relationJobnoIdList: await checkRelation.checkRelationId("daily_report", "jobno_id", jobno_id_list),
     });
@@ -49,7 +58,7 @@ router.get('/', async (req, res) => {
 // 案件検索
 // 入力：検索パラメータ（jobno, 案件名, 開始日, 終了日）
 // 機能：案件を検索して検索結果を返す
-router.get('/search', async (req, res) => {
+router.get('/search', isAuthenticated, checkAuth(1), async (req, res) => {
   console.log("---案件検索GET---");
   // クエリパラメータの取得（trimして空文字列も考慮）
   const jobno_search = req.query.jobno_search?.trim();
@@ -105,7 +114,7 @@ router.get('/search', async (req, res) => {
 });
 
 // 案件モーダル表示（ID 指定の案件取得）
-router.get('/:id', async (req, res) => {
+router.get('/:id', isAuthenticated, checkAuth(1), async (req, res) => {
   console.log('---案件モーダル表示GET---');
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
@@ -133,7 +142,7 @@ router.get('/:id', async (req, res) => {
 // 案件登録
 // 入力：jobno, 案件名, 開始日, 終了日
 // 機能：案件の登録
-router.post('/register', async (req, res) => {
+router.post('/register', isAuthenticated, checkAuth(1), async (req, res) => {
   console.log('---案件登録POST---');
   const jobno = req.body.jobno;
   const job_name = req.body.jobName;
@@ -156,6 +165,8 @@ router.post('/register', async (req, res) => {
       title: 'Daily Report App',
       isAuthenticated: req.session.isAuthenticated,
       userName: req.session.account?.username,
+      userAuth: req.session.userAuth,
+      authName: req.session.authname
     })
   })
 })
@@ -163,7 +174,7 @@ router.post('/register', async (req, res) => {
 // 案件更新
 // 入力：更新対象レコードのid, jobno, 案件名, 開始日, 終了日
 // 機能：登録済み案件の内容を更新する
-router.post('/edit/:id', async (req, res) => {
+router.post('/edit/:id', isAuthenticated, checkAuth(1), async (req, res) => {
   const id = req.params.id; // 更新対象レコードのid
   const jobno = req.body.jobno;
   const job_name = req.body.jobName;
@@ -195,12 +206,14 @@ router.post('/edit/:id', async (req, res) => {
       title: 'Daily Report App',
       isAuthenticated: req.session.isAuthenticated,
       userName: req.session.account?.username,
+      userAuth: req.session.userAuth,
+      authName: req.session.authname
     })
   })
 })
 
 // 案件削除
-router.post('/delete/:id', (req, res) => {
+router.post('/delete/:id', isAuthenticated, checkAuth(1), (req, res) => {
   const id = req.params.id; // 削除対象レコードのid
 
   if (isNaN(id)) {
@@ -222,6 +235,8 @@ router.post('/delete/:id', (req, res) => {
         title: 'Daily Report App',
         isAuthenticated: req.session.isAuthenticated,
         userName: req.session.account?.username,
+        userAuth: req.session.userAuth,
+        authName: req.session.authname
       })
     });
 });
