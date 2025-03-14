@@ -1,7 +1,38 @@
-// URLを取得
-const url = new URL(window.location.href);
+/* =====================
+  　DOM要素のキャッシュ
+   ===================== */
+
+// モーダルフォーム関連
+const modalForm = document.getElementById('modalForm');
+const modalHeader = document.getElementById('modal-header');
+const jobSearchBtn = document.getElementById('job-search-btn');
+const jobSearchDropdownMenu = document.getElementById('job-search-dropdownMenu');
+const jobNoForm = document.getElementById('jobNo');
+const jobNameForm = document.getElementById('jobName');
+const jobDescDropdown = document.getElementById("job_desc_dropdown");
+const personHourDropdown = document.getElementById("person_hour_dropdown");
+const note = document.getElementById("note");
+const modalSubmitBtn = document.getElementById("submit-btn");
+
+// 休暇申請モーダル関連
+const openAbsenceModalBtn = document.getElementById("open-absence-modal-btn");
+const absenceModal = document.getElementById("absence-modal");
+const absenceModalHeader = document.getElementById("absence-modal-header");
+const absenceModalForm = document.getElementById("absenceModalForm");
+const absenceSubmitBtn = document.getElementById("absence-submit-btn");
+
+// 日付
 const dateInput = document.getElementById('date-input');
-const date = dateInput.value; // 現在の日付
+
+// 更新・削除対象のID（グローバル変数）
+let editId, deleteId;
+
+/* =====================
+  　日付処理
+   ===================== */
+
+const url = new URL(window.location.href); // URLを取得
+const date = dateInput.value;              // 現在の日付
 
 // クエリパラメータに日付を設定
 function updateDate(days) {
@@ -12,29 +43,25 @@ function updateDate(days) {
   window.location.href = url.toString();
 }
 
-// --- 日付選択 -------------
-// 日付前後ボタンのイベントリスナー
+// 前日にする
 document.getElementById('prev-btn').addEventListener('click', () => {
   updateDate(-1);
 })
 
+// 翌日にする
 document.getElementById('next-btn').addEventListener('click', () => {
   updateDate(1);
 })
 
 dateInput.addEventListener('change', () => {
-  const selectedDate = dateInput.value;
   // クエリパラメータを更新してページをリロード
   url.searchParams.set('date', dateInput.value);
   window.location.href = url.toString();
 })
-// -------------------------
 
-// --- 案件検索ボタン -----------------------
-const jobSearchBtn = document.getElementById('job-search-btn');
-const jobSearchDropdownMenu = document.getElementById('job-search-dropdownMenu');
-const jobNoForm = document.getElementById('jobNo');
-const jobNameForm = document.getElementById('jobName');
+/* ============================
+  　案件検索（モーダルフォーム）
+   ============================ */
 
 // 案件検索ボタンを押下したら、案件ドロップダウンを表示 
 jobSearchBtn.addEventListener('click', () => {
@@ -45,7 +72,7 @@ jobSearchBtn.addEventListener('click', () => {
   }
 })
 
-// 案件ドロップダウンの要素を選択したら、formに格納する
+// 案件検索ドロップダウンの要素を選択したら、jobNoForm, JobNameFormに格納する
 jobSearchDropdownMenu.addEventListener('click', function(event) {
   const clickedItem = event.target;
 
@@ -64,90 +91,13 @@ document.addEventListener('click', function(event) {
     jobSearchDropdownMenu.style.display = "none";
   }
 })
-// --------------------------------------------
 
-// ---モーダルフォームを用いた工数の登録・更新・削除--------------------------
-// DOM要素
-const modalForm = document.getElementById('modalForm');
-const submitBtn = document.getElementById("submit-btn");
-const jobDescDropdown = document.getElementById("job_desc_dropdown");
-const personHourDropdown = document.getElementById("person_hour_dropdown");
-const openRegModalBtn = document.getElementById('open-reg-modal-btn');
-const modalHeader = document.getElementById('modal-header');
+/* =========================================
+  　工数の登録・更新・削除（モーダルフォーム）
+   ========================================= */
 
-// daily_report DBのidをグローバル変数として定義
-let daily_report_id;
-
-// 登録ボタンが押されたら、モーダルのヘッダーとボタンの名前を変更
-openRegModalBtn.addEventListener('click', () => {
-  modalHeader.textContent = "工数登録";
-  submitBtn.textContent = "登録";
-})
-
-// 編集、削除ボタンクリック時にモーダルヘッダーとモーダルボタンを対応する名称に変更する
-document.addEventListener('click', function(event) {
-  const clickedElement = event.target;
-
-  if (clickedElement.id.includes("open-edit-modal-btn")) {
-    modalHeader.textContent = "工数編集";
-    submitBtn.textContent = "更新";
-  } else if (clickedElement.id.includes("open-del-modal-btn")) {
-    modalHeader.textContent = "工数削除";
-    submitBtn.textContent = "削除";
-  } else {
-    return;
-  }
-})
-
-// ボタンがクリックされたときにフォームのactionを変更する関数
-function updateFormAction(actionUrl, formName) {
-  formName.action = actionUrl;
-}
-
-// form validation
-const validateForm = (form) => {
-  if (!form.checkValidity()) {
-    alert('入力エラー：全項目を入力してください');
-    return false;
-  }
-  console.log("エラーなし")
-  return true;
-}
-
-// 登録、編集、削除の3パターンでaction(バックのルート)を変更する
-submitBtn.addEventListener('click', function(event) {
-  event.preventDefault(); // デフォルトのフォーム動作を停止
-
-  if (!validateForm(modalForm)){
-    return; // エラーがあれば以降の処理は実行せずに終了
-  }
-
-  let actionUrl;
-
-  // 登録、編集、削除の3パターンでactionを変更する
-  const mode = submitBtn.innerText;
-  console.log("モーダルフォームの提出ボタンの名前：", mode);
-  switch( mode ) {
-    case '登録':
-      actionUrl = `main/register/${date}`;
-      break;
-    case '更新':
-      actionUrl = `main/edit/${daily_report_id}?date=${date}`;
-      break;
-    case '削除':
-      actionUrl = `main/delete/${daily_report_id}?date=${date}`;
-      break;
-    default:
-      actionUrl = '#';
-      break;
-  }
-  updateFormAction(actionUrl, modalForm);
-
-  modalForm.submit(); // フォームを送信
-})
-
-// モーダルの初期化(工数登録ボタン押下時)
-function clearModal() {
+// モーダルの初期化
+const clearModal = () => {
   document.getElementById("jobNo").value = "";
   document.getElementById("jobName").value = "";
   jobDescDropdown.options[0].style.display = 'block';
@@ -157,16 +107,100 @@ function clearModal() {
   document.getElementById("note").value = "";
 }
 
-// サーバーから登録内容を取得＆モーダルに表示する(編集、削除ボタン押下時に実行)
-async function fetchDailyReport(id) {
+// 入力フィールドの編集状態を切替
+const initInputsState = () => {
+  jobNoForm.readOnly = true;
+  jobNameForm.readOnly = true;
+};
+
+// フォームのaction属性を更新
+const updateFormAction = (actionUrl, formName) => {
+  formName.action = actionUrl;
+}
+
+// フォームバリデーション
+const validateForm = (form) => {
+  if (!form.checkValidity()) {
+    alert('入力エラー：全項目を入力してください');
+    return false;
+  }
+  console.log("エラーなし")
+  return true;
+}
+
+// モーダルの初期化と状態設定（登録・編集・削除）
+const selectModal = (dataType, id) => {
+  // 共通処理
+  clearModal();      // 入力内容のクリア
+  initInputsState(); // 編集状態の初期化
+
+  switch (dataType) {
+    case 'register':
+      modalHeader.textContent = "工数登録";
+      modalSubmitBtn.textContent = "登録";
+      modalSubmitBtn.dataset.type = "register";
+      break;
+    case 'edit':
+      modalHeader.textContent = "工数編集";
+      modalSubmitBtn.textContent = "更新";
+      modalSubmitBtn.dataset.type = "edit";
+      editId = id;
+      fetchDailyReport(id);
+      break;
+    case 'delete':
+      modalHeader.textContent = "工数削除";
+      modalSubmitBtn.textContent = "削除";
+      modalSubmitBtn.dataset.type = "delete";
+      deleteId = id;
+      fetchDailyReport(id);
+      break;
+    default:
+      modalHeader.textContent    = "####";
+      modalSubmitBtn.textContent = "##";
+      modalSubmitBtn.dataset.type = "null";
+      break;
+  }
+}
+
+// action属性の変更（登録・編集・削除）
+modalSubmitBtn.addEventListener('click', function(event) {
+  event.preventDefault(); // デフォルトのフォーム動作を停止
+
+  if (!validateForm(modalForm)){
+    return; // エラーがあれば以降の処理は実行せずに終了
+  }
+
+  const dataType = event.target.dataset.type;
+
+  let actionUrl = '#';
+
+  switch( dataType ) {
+    case 'register':
+      actionUrl = `main/register/${date}`;
+      break;
+    case 'edit':
+      actionUrl = `main/edit/${editId}?date=${date}`;
+      break;
+    case 'delete':
+      actionUrl = `main/delete/${deleteId}?date=${date}`;
+      break;
+    default:
+      actionUrl = '#';
+      break;
+  }
+  updateFormAction(actionUrl, modalForm);
+  modalForm.submit(); // フォームを送信
+})
+
+// サーバーから登録内容を取得し、モーダルに表示する
+const fetchDailyReport = async (id) => {
   try {
-    daily_report_id = id;
     console.log("fetch時のdaily_report_id : ", id);
     const response = await fetch(`main/${id}`);
     const data = await response.json();
     console.log("サーバーから取得した日報：", data)
-    document.getElementById("jobNo").value = data.jobno;
-    document.getElementById("jobName").value = data.job_name;
+    jobNoForm.value = data.jobno;
+    jobNameForm.value = data.job_name;
     
     jobDescDropdown.options[0].style.display = 'none';
     for (let i = 1; i < jobDescDropdown.options.length; i++) {
@@ -184,21 +218,16 @@ async function fetchDailyReport(id) {
       }
     }
 
-    document.getElementById("note").value = data.note;
+    note.value = data.note;
 
   } catch (error) {
     console.error("データの取得に失敗しました", error);
   }
 }
-// ---------------------------------------------------------------------
 
-// ---休暇申請モーダル--------------------
-const openAbsenceModalBtn = document.getElementById("open-absence-modal-btn");
-const absenceModal = document.getElementById("absence-modal");
-const absenceModalHeader = document.getElementById("absence-modal-header");
-const absenceModalForm = document.getElementById("absenceModalForm");
-const absenceSubmitBtn = document.getElementById("absence-submit-btn");
-
+/* ===============================
+  　休暇申請の削除（モーダルフォーム）
+   =============================== */
 console.log(absenceModal.dataset.absence);
 if (JSON.parse(absenceModal.dataset.absence)) {
   openAbsenceModalBtn.innerText = "休暇取消";
