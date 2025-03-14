@@ -40,9 +40,9 @@
       <div class="table-header">
         <div class="table-title">作業工数</div>
         <% if( absence ) { %>
-          <button class="openModal" id="open-reg-modal-btn" onclick="clearModal()" type="button" disabled style="background-color: darkgray;">工数登録</button>
+          <button class="openModal" id="open-reg-modal-btn" type="button" disabled style="background-color: darkgray;">工数登録</button>
         <% } else { %>
-          <button class="openModal" id="open-reg-modal-btn" onclick="clearModal()" type="button">工数登録</button>
+          <button class="openModal" id="open-reg-modal-btn" data-type="register" onclick="selectModal('register')" type="button">工数登録</button>
         <% } %>
       </div>
       <table border="1">
@@ -74,13 +74,13 @@
             <th scope="row">案件</th>
             <td class="item-table_data"><%= daily_reports[i].job_name %></td>
             <td rowspan="2" align="center">
-                <button class="edit-btn openModal" id="open-edit-modal-btn<%= daily_reports[i].id %>" onclick="fetchDailyReport('<%= daily_reports[i].id %>')">編集</button>
-                <button class="del-btn openModal" id="open-del-modal-btn<% daily_reports[i].id %>" onclick="fetchDailyReport('<%= daily_reports[i].id %>')">削除</button>
+                <button class="edit-btn openModal" id="open-edit-modal-btn<%= daily_reports[i].id %>" data-type="edit" onclick="selectModal('edit','<%= daily_reports[i].id %>')">編集</button>
+                <button class="del-btn openModal" id="open-del-modal-btn<% daily_reports[i].id %>" data-type="delete" onclick="selectModal('delete', '<%= daily_reports[i].id %>')">削除</button>
             </td>
           </tr>
           <tr>
             <th scope="row">備考</th>
-            <td><textarea name="textarea" id="textarea" rows="3" readonly><%= daily_reports[i].note %></textarea></td>
+            <td><textarea name="textarea" id="note" rows="3" readonly><%= daily_reports[i].note %></textarea></td>
           </tr>
         </tbody>
         <% }; %>
@@ -102,7 +102,6 @@
             </ul>
           </div>
         </div>
-        <!-- TODO requiredが設定されているにもかかわらず、フォームに何も入れていない状態でフォーム送信ができる問題を解消する -->
         <form id="modalForm" class="modal-form" method="post">
           <label for="jobNo" class="modal-form__label">JobNo</label>
           <input type="text" name="jobNo" id="jobNo" class="form-control" readonly required>
@@ -114,7 +113,7 @@
           <select id="job_desc_dropdown" name="job_desc" class="form-control" required>
             <option value="" disabled selected hidden>選択</option>
             <% for(i=0; i<job_descs.length; i++) { %>
-              <option><%= job_descs[i].name %></option>
+              <option value="<%= job_descs[i].name %>"><%= job_descs[i].name %></option>
             <% }; %>
           </select>
           <label for="person_hour_dropdown" class="modal-form__label">工数</label>
@@ -122,7 +121,9 @@
             <option value="" disabled selected hidden>選択</option>
             <% for(let hour = 0; hour < 20; hour += 1.0) { %>
               <% for(let min = 0; min < 60; min += 15) { %>
-                <option><%= hour.toString().padStart(2, '0') %>:<%= min === 0 ? "00" : min %></option>
+                <option value="<%= hour.toString().padStart(2, '0') %>:<%= min === 0 ? "00" : min %>">
+                  <%= hour.toString().padStart(2, '0') %>:<%= min === 0 ? "00" : min %>
+                </option>
               <% } %>
             <% } %>
           </select>
