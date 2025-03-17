@@ -1,63 +1,6 @@
-.table-container {
-  box-shadow: 0 0 2px gray;
-  width: 60%;
-  margin-top: 20px;
-  padding-top: 5px;
-  padding-bottom: 10px;
-  padding-left: 10px;
-  padding-right: 10px;
-}
-.table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 15px;
-  margin-bottom: 5px;
-  width: 100%;
-}
-.table-title {
-  font-size: 18px;
-  font-weight: bold;
-}
-button {
-  padding: 5px 10px;
-  border-style: none;
-  background-color:#3366FF;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
-  color: white;
-}
-table {
-  border-collapse: collapse;
-  font-size: 14px;
-  width: 100%;
-}
-table th {
-  padding: 3px;
-}
-table td {
-  padding: 3px;
-}
-thead {
-  background-color: #F0F0F0;
-}
-textarea {
-  width: 90%;
-}
-img {
-  max-width: 20px;
-  height: auto;
-}
-.table-no {
-  text-align: center;
-}
-h3 {
-  padding: 10px;
-  box-shadow: 0 0 2px gray;
-  width: 90%;
-}
-
+/* ################
+　　 日付関連 
+   ################ */
 .date-wrapper {
   display: flex;
   justify-content: space-between;
@@ -113,28 +56,37 @@ input[type="date"]:focus {
   border-left: 15px solid #000;
   border-right: 0 solid transparent;
 }
-.item-table_editbutton {
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
+
+/* ################
+    表要素
+   ################# */
+
+/* 番号 */
+.table-no {
+  text-align: center;
 }
+/* テキストエリア */
+.table-textarea {
+  width: 90%;
+}
+/* 時間 */
 .time-container {
-  display: flex;
+  display: inline-flex;
   margin: 0;
+  padding: 2px;
+  padding-inline: 5px;
   justify-content: center;
   align-items: center;
-  width: 80%;
   background-color: #ffffff;
   border: 1px solid #000;
 }
 #time {
   font-size: 20px;
 }
-.edit-btn {
-  width: 80%;
-  background-color: #F99F48;
-}
+
+/* ################
+    実労働時間
+   ################# */
 .work-hours-container {
   margin-left: 10px;
 }
@@ -147,6 +99,9 @@ input[type="date"]:focus {
   text-align: center;
 }
 
+/* ##################################
+    案件検索ドロップダウン（モーダル内） 
+   ################################## */
 #job-search-dropdownMenu {
   width: fit-content;
   left: 0;
@@ -159,4 +114,12 @@ input[type="date"]:focus {
 #job-search-dropdownMenu li {
   padding: 5px;
   white-space: nowrap;
+}
+
+/**/
+#open-absence-modal-btn {
+  background-color: #ED1A3D;
+}
+#absence-submit-btn {
+  background-color: #ED1A3D;
 }

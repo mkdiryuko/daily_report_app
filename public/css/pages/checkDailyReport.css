@@ -1,0 +1,7 @@
+tbody {
+  text-align: center;
+}
+.search-btns {
+  display: flex;
+  gap: 10px;
+}

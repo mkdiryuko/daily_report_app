@@ -11,7 +11,7 @@ const jobNoForm = document.getElementById('jobNo');
 const jobNameForm = document.getElementById('jobName');
 const jobDescDropdown = document.getElementById("job_desc_dropdown");
 const personHourDropdown = document.getElementById("person_hour_dropdown");
-const note = document.getElementById("note");
+const note = document.getElementById("modal_note");
 const modalSubmitBtn = document.getElementById("submit-btn");
 
 // 休暇申請モーダル関連
@@ -104,7 +104,7 @@ const clearModal = () => {
   jobDescDropdown.selectedIndex = 0;
   personHourDropdown.options[0].style.display = 'block';
   personHourDropdown.selectedIndex = 0;
-  document.getElementById("note").value = "";
+  note.value = "";
 }
 
 // 入力フィールドの編集状態を切替
@@ -219,6 +219,7 @@ const fetchDailyReport = async (id) => {
     }
 
     note.value = data.note;
+    console.log("備考：", data.note);
 
   } catch (error) {
     console.error("データの取得に失敗しました", error);
@@ -226,9 +227,8 @@ const fetchDailyReport = async (id) => {
 }
 
 /* ===============================
-  　休暇申請の削除（モーダルフォーム）
+  　休暇申請の取消（モーダルフォーム）
    =============================== */
-console.log(absenceModal.dataset.absence);
 if (JSON.parse(absenceModal.dataset.absence)) {
   openAbsenceModalBtn.innerText = "休暇取消";
   openAbsenceModalBtn.style.backgroundColor = "red";

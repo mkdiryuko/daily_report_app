@@ -158,7 +158,11 @@ router.post('/register', isAuthenticated, checkAuth(1), async (req, res) => {
     end_date: end_date
   })
   .then(() => {
-    res.redirect('/jobMaintenance');
+    req.flash('success', '案件を登録しました');
+    // セッションの保存が完了してからリダイレクトする
+    req.session.save(() => {
+      res.redirect('/jobMaintenance');
+    })
   })
   .catch(error => {
     console.error(error);
@@ -197,8 +201,11 @@ router.post('/edit/:id', isAuthenticated, checkAuth(1), async (req, res) => {
     }
   )
   .then(() => {
-    console.log("案件情報を更新しました");
-    res.redirect('/jobMaintenance')
+    req.flash('success', '案件を編集しました');
+    // セッションの保存が完了してからリダイレクトする
+    req.session.save(() => {
+      res.redirect('/jobMaintenance');
+    })
   })
   .catch(error => {
     console.log("案件の更新に失敗しました");
@@ -228,7 +235,11 @@ router.post('/delete/:id', isAuthenticated, checkAuth(1), (req, res) => {
       if (deleteRows === 0) {
         return res.status(404).send({ message: `ID ${id} のレコードは存在しません` });
       }
-      res.redirect('/jobMaintenance');
+      req.flash('success', '案件を削除しました');
+      // セッションの保存が完了してからリダイレクトする
+      req.session.save(() => {
+        res.redirect('/jobMaintenance');
+      })
     })
     .catch(error => {
       console.error("削除エラー：", error);
@@ -241,6 +252,5 @@ router.post('/delete/:id', isAuthenticated, checkAuth(1), (req, res) => {
       })
     });
 });
-
 
 module.exports = router;

@@ -107,7 +107,7 @@ router.get('/:id', isAuthenticated, async (req, res) => {
     .catch(error => {
       console.error(error);
       res.render('index', {
-        isAuthenticated: isAuthenticated,
+        isAuthenticated: req.session.isAuthenticated,
         userName: userName
       })
     })
@@ -119,7 +119,7 @@ router.get('/:id', isAuthenticated, async (req, res) => {
 router.post('/register/:date', isAuthenticated, async (req, res) => {
   console.log("---新規登録POST---");
   const user_id = req.session.userId;
-  const job_date = req.params.date;
+  const job_date = req.params.date;  // 日付をクライアントから取得
   const jobno = req.body.jobNo;
   const job_desc = req.body.job_desc;
   const person_hour = req.body.person_hour;
@@ -242,8 +242,11 @@ router.post('/edit/:id', isAuthenticated, async (req, res) => {
     }
   )
   .then(() => {
-    console.log("工数を更新しました");
-    res.redirect(`/main?date=${job_date}`);
+    req.flash('success', '日報を編集しました');
+    // セッションの保存が完了してからリダイレクトする
+    req.session.save(() => {
+      res.redirect(`/main?date=${job_date}`);
+    })
   })
   .catch(error => {
     console.log("データ更新に失敗したよ");
@@ -266,8 +269,11 @@ router.post('/delete/:id', isAuthenticated, async (req, res) => {
   .first()
   .delete()
   .then(() => {
-    console.log("工数を削除しました");
-    res.redirect(`/main?date=${job_date}`);
+    req.flash('success', '日報を削除しました');
+    // セッションの保存が完了してからリダイレクトする
+    req.session.save(() => {
+      res.redirect(`/main?date=${job_date}`);
+    })
   })
   .catch(error => {
     console.log("工数の削除に失敗しました");
@@ -294,7 +300,11 @@ router.post('/absence', async (req, res) => {
     reason: reason
   })
   .then(() => {
-    res.redirect(`/main?date=${date}`);
+    req.flash('success', '休暇申請を受領しました');
+    // セッションの保存が完了してからリダイレクトする
+    req.session.save(() => {
+      res.redirect(`/main?date=${job_date}`);
+    })
   })
   .catch(error => {
     console.error(error);
