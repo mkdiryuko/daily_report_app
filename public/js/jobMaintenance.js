@@ -87,6 +87,17 @@ const validateForm = (form) => {
     alert('入力エラー：全項目を入力してください');
     return false;
   }
+  if (startDateInput.value && endDateInput.value) {
+    console.log('日付エラーチェック');
+    // Dateオブジェクトに変換して比較
+    const startDate = new Date(startDateInput.value);
+    const endDate = new Date(endDateInput.value);
+
+    if (endDate < startDate) {
+      alert('値エラー：終了日は開始日よりも前の日付にはできません');
+      return false;
+    }
+  }
   console.log("エラーなし")
   return true;
 }

@@ -1,0 +1,29 @@
+input[type="date"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  
+  font-family: 'Arial', sans-serif;
+  font-size: 16px;
+  color: #333;
+  padding: 10px;
+  border: 2px solid #aaa;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  outline: none;
+  width: 200px;
+}
+input[type="date"]:hover {
+  border-color: #888;
+}
+input[type="date"]:focus {
+  border-color: #5b9bd5;
+  box-shadow: 0 0 5px rgba(91, 155, 213, 0.5)
+}
+
+input[readonly] {
+  background-color: #f0f0f0; /* 編集不可であることを示す薄いグレー */
+  color: #555;             /* 文字色を少し落ち着いた色に */
+  border: 1px solid #ccc;  /* 通常の入力欄と同様のボーダー */
+  cursor: not-allowed;     /* カーソルを禁止マークに */
+}

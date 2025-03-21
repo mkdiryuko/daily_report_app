@@ -289,7 +289,7 @@ router.post('/delete/:id', isAuthenticated, async (req, res) => {
 router.post('/absence', async (req, res) => {
   console.log('---休暇申請POST---');
   const user_id = req.session.userId;
-  const date = req.body.date;
+  const date = req.body.date || today;
   const reason = req.body.reason;
   
   // absenceに休む日を登録する
@@ -303,7 +303,7 @@ router.post('/absence', async (req, res) => {
     req.flash('success', '休暇申請を受領しました');
     // セッションの保存が完了してからリダイレクトする
     req.session.save(() => {
-      res.redirect(`/main?date=${job_date}`);
+      res.redirect(`/main?date=${date}`);
     })
   })
   .catch(error => {
@@ -326,8 +326,11 @@ router.post('/absence/delete', isAuthenticated, async (req, res) => {
   .first()
   .delete()
   .then(() => {
-    console.log("休暇申請を削除しました");
-    res.redirect(`/main?date=${date}`);
+    req.flash('success', '休暇申請を取り消しました')
+    // セッションの保存が完了してからリダイレクトする
+    req.session.save(() => {
+      res.redirect(`/main?date=${date}`);
+    })
   })
   .catch(error => {
     console.log("休暇申請の削除に失敗しました");

@@ -105,7 +105,7 @@ function searchByDay(query, year, month, day, partner_name) {
 // 月単位で検索する場合の関数
 function searchByMonth(query, year, month, partner_name) {
   const targetMonth = `${year}-${String(month).padStart(2, '0')}`;
-  query = query.whereRaw("DATE_FORMAT(job_date, '%Y-%m') = ?", [targetMonth]);
+  query = query.whereRaw("DATE_FORMAT(job_date, '%Y-%m') = ?", [targetMonth]).orderBy('job_date', 'asc') // 日付昇順
 
   // パートナー名が指定されていれば、検索条件に加える
   if (partner_name && partner_name.trim() !== "") {
@@ -149,7 +149,7 @@ router.get('/', isAuthenticated, checkAuth(2), async (req, res) => {
         userAuth: userAuth,
         authName: authName,
         daily_reports: daily_reports,
-        total_person_hour: total_person_hour
+        total_person_hour: total_person_hour,
       })
     })
     .catch(error => {
