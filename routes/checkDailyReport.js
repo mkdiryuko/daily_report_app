@@ -4,7 +4,6 @@ const express = require('express');
 const router = express.Router();
 const mysql = require('mysql');
 const knex = require('../db/knex');
-const checkRelation = require('../db/checkRelation');
 const flash = require('connect-flash');
 const isAuthenticated = require('../auth/isAuthenticated');
 const checkAuth = require("../auth/checkAuth");

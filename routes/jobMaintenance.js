@@ -4,7 +4,6 @@ const express = require('express');
 const router = express.Router();
 const mysql = require('mysql');
 const knex = require('../db/knex');
-const checkRelation = require('../db/checkRelation');
 const flash = require('connect-flash');
 const isAuthenticated = require('../auth/isAuthenticated');
 const checkAuth = require("../auth/checkAuth");
@@ -17,6 +16,23 @@ const DBconfig = {
 };
 
 const connection = mysql.createConnection(DBconfig);
+
+// 削除対象の案件と紐づいた日報がある場合、警告を出す
+async function checkChildRecords(table_name, fk_name, fk_value) {
+  try {
+    // daily_report DBから、jobno_idが一致するレコードを1件取得
+    const record = await knex(table_name)
+    .where(fk_name, fk_value)
+    .first();
+
+    // レコードが取得出来たら存在すると判断
+    const hasChildRecords = !!record;
+    return hasChildRecords;
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
 
 // 案件一覧表示
 router.get('/', isAuthenticated, checkAuth(1), async (req, res) => {
@@ -43,7 +59,6 @@ router.get('/', isAuthenticated, checkAuth(1), async (req, res) => {
       userAuth: userAuth,
       authName: authName,
       jobs: results,
-      // relationJobnoIdList: await checkRelation.checkRelationId("daily_report", "jobno_id", jobno_id_list),
     });
   } catch (error) {
     console.error(error);
@@ -117,11 +132,14 @@ router.get('/search', isAuthenticated, checkAuth(1), async (req, res) => {
 // 案件モーダル表示（ID 指定の案件取得）
 router.get('/:id', isAuthenticated, checkAuth(1), async (req, res) => {
   console.log('---案件モーダル表示GET---');
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(req.params.id, 10); // 案件id
+  const hasChildRecord = await checkChildRecords('daily_report', 'jobno_id', `${id}`); // 案件idと紐づく日報があるかどうかを判定
+
   if (isNaN(id)) {
     console.error("無効なIDが渡されました:", req.params.id);
     return res.status(400).json({ error: "Invalid id parameter" });
   }
+  
   try {
     const job = await knex("jobs")
       .where({ id: id })
@@ -133,7 +151,10 @@ router.get('/:id', isAuthenticated, checkAuth(1), async (req, res) => {
       )
       .first();
     console.log("取得した案件：", job);
-    res.json(job);
+    res.json({
+      job: job,
+      hasChildRecord: hasChildRecord
+    });
   } catch (error) {
     console.error("データ取得エラー：", error);
     res.status(500).json({ error: "Server error" });

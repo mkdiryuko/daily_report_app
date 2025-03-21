@@ -6,6 +6,7 @@ const jobNoInput     = document.getElementById("jobNo");
 const jobNameInput   = document.getElementById("jobName");
 const startDateInput = document.getElementById("startDate");
 const endDateInput   = document.getElementById("endDate");
+const warningMessage = document.getElementById("warningMessage");
 
 // 更新・削除対象のID（グローバル変数）
 let editId, deleteId;
@@ -13,6 +14,7 @@ let editId, deleteId;
 // モーダルフォームを初期化する（入力フィールドをクリア）
 const clearModal = () => {
   [jobNoInput, jobNameInput, startDateInput, endDateInput].forEach(input => input.value = "");
+  warningMessage.textContent = "";
 };
 
 // 入力フィールドの編集状態を一括設定
@@ -26,14 +28,25 @@ const setInputsState = (isEditable) => {
 const fetchJob = async (id) => {
   try {
     console.log("fetch時のjob_id:", id);
-    const response = await fetch(`/jobMaintenance/${id}`);
-    const job = await response.json();
-    console.log("サーバーから取得した案件：", job);
-    
-    jobNoInput.value   = job.jobno;
-    jobNameInput.value = job.name;
-    startDateInput.value = job.start_date;
-    endDateInput.value   = job.end_date;
+    await fetch(`/jobMaintenance/${id}`)
+      .then(response => response.json())
+      .then(data => {
+        console.log("サーバーから取得したデータ：", data);
+        jobNoInput.value   = data.job.jobno;
+        jobNameInput.value = data.job.name;
+        startDateInput.value = data.job.start_date;
+        endDateInput.value   = data.job.end_date;
+        if (data.hasChildRecord) {
+          if (modalSubmitBtn.dataset.type === 'edit') {
+            warningMessage.innerHTML = "(※)この案件が登録された日報が存在します<br>(※)編集を行う場合、対応する日報も編集されます";
+          } else if (modalSubmitBtn.dataset.type === 'delete') {
+            warningMessage.innerHTML = "(※)この案件が登録された日報が存在します<br>(※)削除を行う場合、対応する日報も削除されます";
+          }
+        }
+      })
+      .catch(error => {
+        console.error('エラー発生：', error);
+      })
   } catch (error) {
     console.error("データの取得に失敗しました", error);
   }
@@ -57,7 +70,7 @@ const selectModal = (dataType, id) => {
       setInputsState(true);
       modalSubmitBtn.dataset.type = "edit";
       editId = id;
-      fetchJob(id);
+      fetchJob(id, 'edit');
       break;
     case 'delete':
       modalHeader.textContent    = "案件削除";
@@ -65,7 +78,7 @@ const selectModal = (dataType, id) => {
       setInputsState(false);
       modalSubmitBtn.dataset.type = "delete";
       deleteId = id;
-      fetchJob(id);
+      fetchJob(id, 'delete');
       break;
     default:
       modalHeader.textContent    = "####";
