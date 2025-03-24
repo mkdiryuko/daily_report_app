@@ -15,7 +15,16 @@ const checkAuth = (requiredAuth) => {
 
     // ユーザーの権限が要求値に満たない場合、権限不足エラーを返す
     if (userAuth < requiredAuth) {
-      return res.status(403).json({ error: '権限不足です' });
+      res.render('error', {
+        status: 403,
+        message: 'このページにアクセスする権限がありません',
+        error: res.locals.error,
+        isAuthenticated: req.session.isAuthenticated,
+        userName: req.session.account?.name,
+        userAuth: req.session.userAuth,
+        authName: req.session.authname
+      })
+      return;
     }
 
     // 権限が十分な場合は、次のミドルウェアまたはルートハンドラへ進む
