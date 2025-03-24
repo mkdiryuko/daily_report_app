@@ -84,6 +84,7 @@ router.get('/', isAuthenticated, async (req, res, next) => {
   });
 });
 
+// 既に登録された日報を、編集・削除モーダル中のフォームに格納するために取得する
 router.get('/:id', isAuthenticated, async (req, res) => {
   console.log('---モーダル表示GET---');
   const id = parseInt(req.params.id, 10);
@@ -116,6 +117,7 @@ router.get('/:id', isAuthenticated, async (req, res) => {
   }
 })
 
+// 新規登録
 router.post('/register/:date', isAuthenticated, async (req, res) => {
   console.log("---新規登録POST---");
   const user_id = req.session.userId;
@@ -188,6 +190,7 @@ router.post('/register/:date', isAuthenticated, async (req, res) => {
   })
 });
 
+// 編集
 router.post('/edit/:id', isAuthenticated, async (req, res) => {
   console.log("---編集用POSTルート---");
   const id = req.params.id;
@@ -259,6 +262,7 @@ router.post('/edit/:id', isAuthenticated, async (req, res) => {
   })
 })
 
+// 削除
 router.post('/delete/:id', isAuthenticated, async (req, res) => {
   console.log('---削除POST---');
   const id = req.params.id;
@@ -286,6 +290,7 @@ router.post('/delete/:id', isAuthenticated, async (req, res) => {
   })
 })
 
+// 休暇申請
 router.post('/absence', async (req, res) => {
   console.log('---休暇申請POST---');
   const user_id = req.session.userId;

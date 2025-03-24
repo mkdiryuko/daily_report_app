@@ -34,7 +34,8 @@ async function checkChildRecords(table_name, fk_name, fk_value) {
   }
 }
 
-// 案件一覧表示
+// 初期表示(案件一覧表示)
+// マネージャーまたは管理者権限が必要
 router.get('/', isAuthenticated, checkAuth(1), async (req, res) => {
   console.log('---案件一覧GET---');
   const isAuthenticated = req.session.isAuthenticated;
@@ -71,8 +72,7 @@ router.get('/', isAuthenticated, checkAuth(1), async (req, res) => {
 });
 
 // 案件検索
-// 入力：検索パラメータ（jobno, 案件名, 開始日, 終了日）
-// 機能：案件を検索して検索結果を返す
+// 検索パラメータ（jobno, 案件名, 開始日, 終了日）
 router.get('/search', isAuthenticated, checkAuth(1), async (req, res) => {
   console.log("---案件検索GET---");
   // クエリパラメータの取得（trimして空文字列も考慮）
