@@ -36,7 +36,7 @@ async function checkChildRecords(table_name, fk_name, fk_value) {
 
 // 初期表示(案件一覧表示)
 // マネージャーまたは管理者権限が必要
-router.get('/', isAuthenticated, checkAuth(1), async (req, res) => {
+router.get('/', isAuthenticated, checkAuth(1), async (req, res, next) => {
   console.log('---案件一覧GET---');
   const isAuthenticated = req.session.isAuthenticated;
   const userName = req.session.account?.name;
@@ -63,17 +63,15 @@ router.get('/', isAuthenticated, checkAuth(1), async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.render('index', {
-      title: 'Daily Report App',
-      isAuthenticated: req.session.isAuthenticated,
-      userName: req.session.account?.name
-    });
+    error.message = '案件一覧の取得に失敗しました';
+    error.status = '500';
+    next(error);
   }
 });
 
 // 案件検索
 // 検索パラメータ（jobno, 案件名, 開始日, 終了日）
-router.get('/search', isAuthenticated, checkAuth(1), async (req, res) => {
+router.get('/search', isAuthenticated, checkAuth(1), async (req, res, next) => {
   console.log("---案件検索GET---");
   // クエリパラメータの取得（trimして空文字列も考慮）
   const jobno_search = req.query.jobno_search?.trim();
@@ -122,22 +120,23 @@ router.get('/search', isAuthenticated, checkAuth(1), async (req, res) => {
     });
   } catch (error) {
     console.error("検索エラー：", error);
-    res.render('index', {
-      isAuthenticated: req.session.isAuthenticated,
-      userName: req.session.account?.name
-    });
+    error.message = '案件の検索に失敗しました';
+    error.status = '500';
+    next(error);
   }
 });
 
 // 案件モーダル表示（ID 指定の案件取得）
-router.get('/:id', isAuthenticated, checkAuth(1), async (req, res) => {
+router.get('/:id', isAuthenticated, checkAuth(1), async (req, res, next) => {
   console.log('---案件モーダル表示GET---');
   const id = parseInt(req.params.id, 10); // 案件id
   const hasChildRecord = await checkChildRecords('daily_report', 'jobno_id', `${id}`); // 案件idと紐づく日報があるかどうかを判定
 
   if (isNaN(id)) {
     console.error("無効なIDが渡されました:", req.params.id);
-    return res.status(400).json({ error: "Invalid id parameter" });
+    const err = new Error('無効なIDが渡されました。該当する案件が存在しません。');
+    err.status = 404;
+    return next(err);
   }
   
   try {
@@ -157,14 +156,16 @@ router.get('/:id', isAuthenticated, checkAuth(1), async (req, res) => {
     });
   } catch (error) {
     console.error("データ取得エラー：", error);
-    res.status(500).json({ error: "Server error" });
+    error.message = '案件の取得に失敗しました';
+    error.status = 500;
+    next(error);
   }
 });
 
 // 案件登録
 // 入力：jobno, 案件名, 開始日, 終了日
 // 機能：案件の登録
-router.post('/register', isAuthenticated, checkAuth(1), async (req, res) => {
+router.post('/register', isAuthenticated, checkAuth(1), async (req, res, next) => {
   console.log('---案件登録POST---');
   const jobno = req.body.jobno;
   const job_name = req.body.jobName;
@@ -187,20 +188,16 @@ router.post('/register', isAuthenticated, checkAuth(1), async (req, res) => {
   })
   .catch(error => {
     console.error(error);
-    res.render('index', {
-      title: 'Daily Report App',
-      isAuthenticated: req.session.isAuthenticated,
-      userName: req.session.account?.username,
-      userAuth: req.session.userAuth,
-      authName: req.session.authname
-    })
+    error.message = '案件の取得に失敗しました';
+    error.status = 500;
+    next(error);
   })
 })
 
 // 案件更新
 // 入力：更新対象レコードのid, jobno, 案件名, 開始日, 終了日
 // 機能：登録済み案件の内容を更新する
-router.post('/edit/:id', isAuthenticated, checkAuth(1), async (req, res) => {
+router.post('/edit/:id', isAuthenticated, checkAuth(1), async (req, res, next) => {
   const id = req.params.id; // 更新対象レコードのid
   const jobno = req.body.jobno;
   const job_name = req.body.jobName;
@@ -242,7 +239,7 @@ router.post('/edit/:id', isAuthenticated, checkAuth(1), async (req, res) => {
 })
 
 // 案件削除
-router.post('/delete/:id', isAuthenticated, checkAuth(1), (req, res) => {
+router.post('/delete/:id', isAuthenticated, checkAuth(1), (req, res, next) => {
   const id = req.params.id; // 削除対象レコードのid
 
   if (isNaN(id)) {

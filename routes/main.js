@@ -77,19 +77,18 @@ router.get('/', isAuthenticated, async (req, res, next) => {
   })
   .catch(error => {
     console.error(error);
-    res.render('index', {
-      isAuthenticated: isAuthenticated,
-      userName: userName,
-    });
+    error.message = '工数登録ページの読込に失敗しました';
+    error.status = 500;
+    next(error);
   });
 });
 
 // 既に登録された日報を、編集・削除モーダル中のフォームに格納するために取得する
-router.get('/:id', isAuthenticated, async (req, res) => {
+router.get('/:id', isAuthenticated, async (req, res, next) => {
   console.log('---モーダル表示GET---');
   const id = parseInt(req.params.id, 10);
   try { 
-    await knex("daily_report")
+    const selected_daily_report = await knex("daily_report")
     .join('jobs', 'daily_report.jobno_id','=', 'jobs.id')
     .join('job_desc', 'daily_report.job_desc_id','=', 'job_desc.id')
     .where({'daily_report.id': id})
@@ -100,25 +99,29 @@ router.get('/:id', isAuthenticated, async (req, res) => {
       'job_desc.name as job_desc_name',
       'daily_report.note'
     )
-    .first()
-    .then(selected_daily_report => {
-      console.log("取得した日報：", selected_daily_report);
-      res.json(selected_daily_report);
-    })
-    .catch(error => {
-      console.error(error);
-      res.render('index', {
-        isAuthenticated: req.session.isAuthenticated,
-        userName: userName
-      })
-    })
+    .first();
+    
+    // 該当する日報が存在しない場合は404エラーを返す
+    if (!selected_daily_report) {
+      const err = new Error('該当する日報が存在しません');
+      err.status = 404;
+      console.log(err);
+      return next(err);
+    }
+
+    console.log('取得した日報：', selected_daily_report);
+    res.json(selected_daily_report);
+
   } catch(error) {
     console.error("サーバーエラー：", error);
+    error.message = '工数の取得に失敗しました';
+    error.status = 500;
+    next(error);
   }
 })
 
 // 新規登録
-router.post('/register/:date', isAuthenticated, async (req, res) => {
+router.post('/register/:date', isAuthenticated, async (req, res, next) => {
   console.log("---新規登録POST---");
   const user_id = req.session.userId;
   const job_date = req.params.date;  // 日付をクライアントから取得
@@ -164,10 +167,10 @@ router.post('/register/:date', isAuthenticated, async (req, res) => {
   })
   
   // daily_reportに業務日報を登録する
-  knex("daily_report")
+  await knex("daily_report")
   .insert({
     user_id: user_id,
-    job_date: job_date, 
+    job_date: job_date,
     jobno_id: jobno_id,
     person_hour: person_hour,
     job_desc_id: job_desc_id,
@@ -182,16 +185,14 @@ router.post('/register/:date', isAuthenticated, async (req, res) => {
   })
   .catch(error => {
     console.error(error);
-    res.render('index', {
-      title: 'Daily Report App',
-      isAuthenticated: req.session.isAuthenticated,
-      userName: req.session.account?.username,
-    })
+    error.message = '工数の登録に失敗しました';
+    error.status = 500;
+    next(error);
   })
 });
 
 // 編集
-router.post('/edit/:id', isAuthenticated, async (req, res) => {
+router.post('/edit/:id', isAuthenticated, async (req, res, next) => {
   console.log("---編集用POSTルート---");
   const id = req.params.id;
   const jobno = req.body.jobNo;
@@ -252,13 +253,10 @@ router.post('/edit/:id', isAuthenticated, async (req, res) => {
     })
   })
   .catch(error => {
-    console.log("データ更新に失敗したよ");
     console.error(error);
-    res.render('index', {
-      title: 'Daily Report App',
-      isAuthenticated: req.session.isAuthenticated,
-      userName: req.session.account?.username,
-    })
+    error.message = '工数の編集に失敗しました';
+    error.status = 500;
+    next(error);
   })
 })
 
@@ -280,13 +278,10 @@ router.post('/delete/:id', isAuthenticated, async (req, res) => {
     })
   })
   .catch(error => {
-    console.log("工数の削除に失敗しました");
     console.error(error);
-    res.render('index', {
-      title: 'Daily Report App',
-      isAuthenticated: req.session.isAuthenticated,
-      userName: req.session.account?.username,
-    })
+    error.message = '工数の削除に失敗しました';
+    error.status = '500';
+    next(error);
   })
 })
 
@@ -298,7 +293,7 @@ router.post('/absence', async (req, res) => {
   const reason = req.body.reason;
   
   // absenceに休む日を登録する
-  knex("absence")
+  await knex("absence")
   .insert({
     user_id: user_id,
     date: date,
@@ -313,11 +308,9 @@ router.post('/absence', async (req, res) => {
   })
   .catch(error => {
     console.error(error);
-    res.render('index', {
-      title: 'Daily Report App',
-      isAuthenticated: req.session.isAuthenticated,
-      userName: req.session.account?.username,
-    })
+    error.message = '休暇申請の登録に失敗しました';
+    error.status = '500';
+    next(error);
   })
 })
 
@@ -326,7 +319,7 @@ router.post('/absence/delete', isAuthenticated, async (req, res) => {
   console.log('---休暇取消POST---');
   const date = req.query.date;
 
-  knex("absence")
+  await knex("absence")
   .where({date: date})
   .first()
   .delete()
@@ -340,11 +333,9 @@ router.post('/absence/delete', isAuthenticated, async (req, res) => {
   .catch(error => {
     console.log("休暇申請の削除に失敗しました");
     console.error(error);
-    res.render('index', {
-      title: 'Daily Report App',
-      isAuthenticated: req.session.isAuthenticated,
-      userName: req.session.account?.username,
-    })
+    error.message = '休暇申請の削除に失敗しました';
+    error.status = '500';
+    next(error);
   })
 })
 
