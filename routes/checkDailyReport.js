@@ -4,7 +4,6 @@ const express = require('express');
 const router = express.Router();
 const mysql = require('mysql');
 const knex = require('../db/knex');
-const checkRelation = require('../db/checkRelation');
 const flash = require('connect-flash');
 const isAuthenticated = require('../auth/isAuthenticated');
 const checkAuth = require("../auth/checkAuth");
@@ -24,7 +23,7 @@ const current_day = today.getDate();
 
 // 指定した月の総工数を返す関数
 // 入力：年、月、パートナー名（任意）
-// 出力：月単位の総工数
+// 出力：月単位の総工数(hh:mm)
 async function getTotalPersonHourByMonth(year, month, partner_name) {
   console.log("---指定した月の総工数の計算---(getTotalPersonHourByMonth)");
   try {
@@ -57,7 +56,7 @@ async function getTotalPersonHourByMonth(year, month, partner_name) {
 
 // 指定した日付の工数を返す関数
 // 入力：年、月、日、パートナー名（任意）
-// 出力：日単位の総工数
+// 出力：日単位の総工数(hh:mm)
 async function getTotalPersonHourByDay(year, month, day, partner_name) {
   console.log("---指定した日の総工数の計算---(getTotalPersonHourByDay)");
   try {
@@ -88,7 +87,7 @@ async function getTotalPersonHourByDay(year, month, day, partner_name) {
   }
 }
 
-// 日付で検索する場合の関数
+// 日付で検索する
 function searchByDay(query, year, month, day, partner_name) {
   query = query
     .whereRaw('YEAR(job_date) = ?', [year])
@@ -102,7 +101,7 @@ function searchByDay(query, year, month, day, partner_name) {
   return query;
 }
 
-// 月単位で検索する場合の関数
+// 月単位で検索する
 function searchByMonth(query, year, month, partner_name) {
   const targetMonth = `${year}-${String(month).padStart(2, '0')}`;
   query = query.whereRaw("DATE_FORMAT(job_date, '%Y-%m') = ?", [targetMonth]).orderBy('job_date', 'asc') // 日付昇順
@@ -115,7 +114,7 @@ function searchByMonth(query, year, month, partner_name) {
   return query;
 }
 
-// 日報一覧表示
+// 日報一覧表示（管理者権限が必要）
 router.get('/', isAuthenticated, checkAuth(2), async (req, res) => {
   console.log('---日報一覧 GET---')
   const isAuthenticated = req.session.isAuthenticated;
@@ -126,12 +125,12 @@ router.get('/', isAuthenticated, checkAuth(2), async (req, res) => {
 
   // 今日の日報一覧を取得する
   await knex('daily_report')
-  .join('jobs', 'daily_report.jobno_id','=', 'jobs.id') // 案件名
+  .join('jobs', 'daily_report.jobno_id','=', 'jobs.id')            // 案件名
   .join('job_desc', 'daily_report.job_desc_id','=', 'job_desc.id') // 業務内容
-  .join('user', 'daily_report.user_id', '=', 'user.id') // ユーザー名（後でパートナーの絞り込みに変更）
-  .whereRaw('YEAR(job_date) = ?', [current_year]) // 今年
-  .andWhereRaw('MONTH(job_date) = ?', [current_month]) // 今月
-  .andWhereRaw('DAY(job_date) = ?', [current_day]) // 今日
+  .join('user', 'daily_report.user_id', '=', 'user.id')            // ユーザー名（後でパートナーの絞り込みに変更）
+  .whereRaw('YEAR(job_date) = ?', [current_year])                  // 今年
+  .andWhereRaw('MONTH(job_date) = ?', [current_month])             // 今月
+  .andWhereRaw('DAY(job_date) = ?', [current_day])                 // 今日
   .select(
     'daily_report.id',
     'user.name as partner_name',
