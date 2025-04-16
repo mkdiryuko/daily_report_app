@@ -1,0 +1,103 @@
+/* ################
+　　 日付関連 
+   ################ */
+.date-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  box-shadow: 0 0 2px gray;
+  width: 90%;
+}
+.left-group, .right-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.triangle-btn {
+  position: relative;
+  width: 0;
+  height: 0;
+  cursor: pointer;
+}
+.triangle-btn.prev {
+  content: "";
+  margin: 0.5rem;
+  border: 15px solid transparent;
+  border-left: 0 solid transparent;
+  border-right: 15px solid #000;
+}
+.triangle-btn.next {
+  content: "";
+  margin: 0.5rem;
+  border: 15px solid transparent;
+  border-left: 15px solid #000;
+  border-right: 0 solid transparent;
+}
+
+/* ################
+    表要素
+   ################# */
+
+/* 番号 */
+.table-no {
+  text-align: center;
+}
+/* テキストエリア */
+.table-textarea {
+  width: 90%;
+}
+/* 時間 */
+.time-container {
+  display: inline-flex;
+  margin: 0;
+  padding: 2px;
+  padding-inline: 5px;
+  justify-content: center;
+  align-items: center;
+  background-color: #ffffff;
+  border: 1px solid #000;
+}
+#time {
+  font-size: 20px;
+}
+
+/* ################
+    実労働時間
+   ################# */
+.work-hours-container {
+  margin-left: 10px;
+}
+.work-hours-time {
+  font-size: 16px;
+  font-weight: bold;
+  border: 1px solid #000;
+  padding: 2px;
+  width: 100px;
+  text-align: center;
+}
+
+/* ##################################
+    案件検索ドロップダウン（モーダル内） 
+   ################################## */
+#job-search-dropdownMenu {
+  width: fit-content;
+  left: 0;
+}
+#job-search-dropdownMenu ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+#job-search-dropdownMenu li {
+  padding: 5px;
+  white-space: nowrap;
+}
+
+/**/
+#open-absence-modal-btn {
+  background-color: #ED1A3D;
+}
+#absence-submit-btn {
+  background-color: #ED1A3D;
+}

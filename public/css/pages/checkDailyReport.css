@@ -1,0 +1,27 @@
+tbody {
+  text-align: center;
+}
+.search-btns {
+  display: flex;
+  gap: 10px;
+}
+.triangle-btn {
+  position: relative;
+  width: 0;
+  height: 0;
+  cursor: pointer;
+}
+.triangle-btn.prev {
+  content: "";
+  margin: 0.5rem;
+  border: 15px solid transparent;
+  border-left: 0 solid transparent;
+  border-right: 15px solid #000;
+}
+.triangle-btn.next {
+  content: "";
+  margin: 0.5rem;
+  border: 15px solid transparent;
+  border-left: 15px solid #000;
+  border-right: 0 solid transparent;
+}

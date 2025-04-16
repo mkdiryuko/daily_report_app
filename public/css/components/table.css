@@ -1,0 +1,39 @@
+table {
+  border-collapse: collapse;
+  font-size: 14px;
+  width: 100%;
+  table-layout: auto;
+}
+table th {
+  padding: 3px;
+}
+table td {
+  padding: 3px;
+  width: fit-content;
+  white-space: nowrap;
+}
+thead {
+  background-color: #F0F0F0;
+}
+
+.table-container {
+  box-shadow: 0 0 2px gray;
+  width: 80%;
+  margin-top: 20px;
+  padding-top: 5px;
+  padding-bottom: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  width: 100%;
+}
+.table-title {
+  font-size: 18px;
+  font-weight: bold;
+}

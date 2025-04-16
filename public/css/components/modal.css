@@ -72,6 +72,15 @@
   margin: 3px;
   padding: 5px;
 }
+.submit-btn[data-type="register"] {
+  background-color: #3366FF;
+}
+.submit-btn[data-type="edit"] {
+  background-color: #F99F48;
+}
+.submit-btn[data-type="delete"] {
+  background-color: #ED1A3D;
+}
 .modal-footer .submit-btn:hover {
   background-color: #D3DEF1;
 }

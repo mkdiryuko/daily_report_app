@@ -2,23 +2,27 @@
   <nav>
     <ul>
       <li>
-        <a href="/calendar">予定表</a>
+        <a href="/calendar">カレンダー</a>
       </li>
       <li>
         <a href="/main">工数登録</a>
       </li>
+      <% if (userAuth > 0) { %>
       <li>
         <a href="#">代理工数入力</a>
       </li>
       <li>
         <a href="/jobMaintenance">案件管理</a>
       </li>
+      <% } %>
+      <% if (userAuth > 1) { %>
       <li>
         <a href="#">ユーザー管理</a>
       </li>
       <li>
-        <a href="/checkDailyReport">日報一覧</a>
+        <a href="/checkDailyReport">日報管理</a>
       </li>
+      <% } %>
     </ul>
   </nav>
 </div>

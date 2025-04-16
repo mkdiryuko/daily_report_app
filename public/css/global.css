@@ -1,0 +1,9 @@
+h3 {
+  padding: 10px;
+  box-shadow: 0 0 2px gray;
+  width: 90%;
+}
+img {
+  max-width: 20px;
+  height: auto;
+}

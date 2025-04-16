@@ -2,78 +2,91 @@
 <html lang="ja">
 <head>
   <%- include('partials/head.ejs'); %>
-  <link rel="stylesheet" href="../css/main.css">
-  <link rel="stylesheet" href="../css/modal.css">
+  <link rel="stylesheet" href="../css/pages/checkDailyReport.css">
 </head>
-
 <body>
   <%- include('partials/header.ejs'); %>
   <%- include('partials/sidebar.ejs'); %>
 
   <main>
-    <h3>日報一覧</h3>
+    <h3>日報管理</h3>
 
-    <h4>検索</h4>
-    <!-- 案件検索テーブル -->
-    <form action="#" method="GET">
-      <table border="1">
-        <tr>
-          <td><label for="yearSpinner">年</label></td>
-          <td><label for="monthSpinner">月</label></td>
-          <td><label for="daySpinner">日</label></td>
-          <td><label for="partner_search">パートナー</label></td>
-        </tr>
-        <tr>
-          <td><input type="number" id="yearSpinner" name="year" min="1900" max="2100"></td>
-          <td><input type="number" id="monthSpinner" name="month" min="1" max="12"></td>
-          <td><input type="number" id="daySpinner" name="day" min="1"></td>
-          <td><input type="text" id="partner_search" name="partner"></td>
-          <td><button type="button" id="today-btn">今日</button></td>
-          <td><button type="button" id="month-btn">月全て</button></td>
-        </tr>
-      </table>
-    </form>
-
-    <h4>日報一覧</h4>
-    <!-- 日報テーブル -->
-    <span>総工数：</span>
-    <span id="total_person_hour"><%= total_person_hour %></span>
-    <div id="results">
-      <% if (daily_reports.length === 0) { %>
-        <p>検索条件に合致するレコードがありません</p>
-      <% } else { %>
+    <!-- 日報検索テーブル -->
+    <div class="table-container">
+      <div class="table-header">
+        <div class="table-title">日報検索</div>
+        <div class="search-btns">
+          <div class="triangle-btn prev" id="prev-btn"></div>
+          <input type="date" id="date-input">
+          <div class="triangle-btn next" id="next-btn"></div>
+          <button type="button" id="today-btn">今日</button>
+          <button type="button" id="month-btn">月全て</button>
+        </div>
+      </div>
+      <form action="#" method="GET">
         <table border="1">
           <thead>
             <tr>
+              <th>年</th>
+              <th>月</th>
+              <th>日</th>
               <th>パートナー</th>
-              <th>登録日</th>
-              <th>jobno</th>
-              <th>案件名</th>
-              <th>業務内容</th>
-              <th>工数</th>
-              <th>備考</th>
             </tr>
           </thead>
           <tbody>
-            <% for (let i = 0; i < daily_reports.length; i++) { %>
-              <tr>
-                <td><%= daily_reports[i].partner_name %></td>
-                <td><%= daily_reports[i].job_date %></td>
-                <td><%= daily_reports[i].jobno %></td>
-                <td><%= daily_reports[i].job_name %></td>
-                <td><%= daily_reports[i].job_desc_name %></td>
-                <td><%= daily_reports[i].person_hour.slice(0, 5) %></td>
-                <td><%= daily_reports[i].note %></td>
-              </tr>
-            <% } %>
+            <tr>
+              <td><input type="text" id="yearInput" name="year" min="1900" max="2100" readonly></td>
+              <td><input type="text" id="monthInput" name="month" min="1" max="12" readonly></td>
+              <td><input type="text" id="dayInput" name="day" min="1" readonly></td>
+              <td><input type="text" id="partner_search" name="partner"></td>
+            </tr>
           </tbody>
         </table>
-      <% } %>
+      </form>
+    </div>
+
+    <!-- 日報一覧テーブル -->
+    <div class="table-container">
+      <div class="table-header">
+        <div class="table-title">日報一覧</div>
+        <span id="total_person_hour"><%= total_person_hour %></span>
+      </div>
+      <div id="results">
+        <% if (daily_reports.length === 0) { %>
+          <p>検索条件に合致するレコードがありません</p>
+        <% } else { %>
+          <table border="1">
+            <thead>
+              <tr>
+                <th>パートナー</th>
+                <th>登録日</th>
+                <th>jobno</th>
+                <th>案件名</th>
+                <th>業務内容</th>
+                <th>工数</th>
+                <th>備考</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% for (let i = 0; i < daily_reports.length; i++) { %>
+                <tr>
+                  <td><%= daily_reports[i].partner_name %></td>
+                  <td><%= daily_reports[i].job_date %></td>
+                  <td><%= daily_reports[i].jobno %></td>
+                  <td><%= daily_reports[i].job_name %></td>
+                  <td><%= daily_reports[i].job_desc_name %></td>
+                  <td><%= daily_reports[i].person_hour.slice(0, 5) %></td>
+                  <td><%= daily_reports[i].note %></td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        <% } %>
+      </div>
     </div>
   </main>
   <!-- js -->
   <script type="text/javascript" src="../js/layout.js"></script>
   <script type="text/javascript" src="../js/checkDailyReport.js"></script>
-  </script>
 </body>
 </html>

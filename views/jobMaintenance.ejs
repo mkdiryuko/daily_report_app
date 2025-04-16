@@ -1,50 +1,64 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <%- include('partials/head.ejs'); %>
-    <link rel="stylesheet" href="../css/modal.css">
-  </head>
-  <body>
-    <%- include('partials/header.ejs'); %>
-    <%- include('partials/sidebar.ejs'); %>
-    <main>
-      <h3>案件管理</h3>
-      
-      <h4>検索</h4>
-      <input type="text" placeholder="検索">
+<head>
+  <%- include('partials/head.ejs'); %>
+  <link rel="stylesheet" href="../css/pages/jobMaintenance.css">
+</head>
+<body>
+  <%- include('partials/header.ejs'); %>
+  <%- include('partials/sidebar.ejs'); %>
+  <main>
+    <% if(messages.success){ %>
+      <div class="alert alert-success" role="alert">
+        <%= messages.success %>
+        <button class="close-btn" onclick="this.parentElement.style.display='none'">&times;</button>
+      </div>
+    <% } %> 
+    <h3>案件管理</h3>
 
-      <!-- 案件検索テーブル -->
-      <form action="/jobMaintenance/search" method="GET">
+    <!-- 案件検索テーブル -->
+    <div class="table-container">
+      <div class="table-header">
+        <div class="table-title">案件検索</div>
+        <button type="button" id="clear-btn">検索条件クリア</button>
+      </div>
+      <form id="jobSearchForm" action="/jobMaintenance/search" method="GET">
         <table border="1">
-          <tr>
-            <td><label for="jobno_search">jobno</label></td>
-            <td><label for="name_search">案件名</label></td>
-            <td><label for="search3">期間</label></td>
-          </tr>
-          <tr>
-            <td><input type="text" name="jobno_search" value="<%= typeof jobno_search !== 'undefined' ? jobno_search : '' %>"></td>
-            <td><input type="text" name="name_search" value="<%= typeof name_search !== 'undefined' ? name_search : '' %>"></td>
-            <td>
-              <label for="start_date_search">開始日：</label>
-              <input type="date" id="start_date_search" name="start_date_search" value="<%= typeof start_date_search !== 'undefined' ? start_date_search : '' %>">
-              ～
-              <label for="end_date_search">終了日：</label>
-              <input type="date" id="end_date_search" name="end_date_search" value="<%= typeof end_date_search !== 'undefined' ? end_date_search : '' %>">
-            </td>
-            <td><button type="submit">検索</button></td>
-            <td><button type="button" id="clear-btn">検索条件クリア</button></td>
-          </tr>
+          <thead>
+            <tr>
+              <th scope="col">jobno</th>
+              <th scope="col">案件名</th>
+              <th scope="col">期間</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="text" name="jobno_search" value="<%= typeof jobno_search !== 'undefined' ? jobno_search : '' %>"></td>
+              <td><input type="text" name="name_search" value="<%= typeof name_search !== 'undefined' ? name_search : '' %>"></td>
+              <td>
+                <label for="start_date_search">開始日：</label>
+                <input type="date" id="start_date_search" name="start_date_search" value="<%= typeof start_date_search !== 'undefined' ? start_date_search : '' %>">
+                ～
+                <label for="end_date_search">終了日：</label>
+                <input type="date" id="end_date_search" name="end_date_search" value="<%= typeof end_date_search !== 'undefined' ? end_date_search : '' %>">
+              </td>
+              <td><button type="submit">検索</button></td>
+            </tr>
+          </tbody>
         </table>
       </form>
+    </div>
 
-      <h4>案件一覧</h4>
-      <button class="openModal" data-type="register" type="button" onclick="selectModal('register')">新規登録</button>
-
-      <!-- 案件一覧テーブル -->
+    <!-- 案件一覧テーブル -->
+    <div class="table-container">
+      <div class="table-header">
+        <div class="table-title">案件一覧</div>
+        <button class="openModal" data-type="register" type="button" onclick="selectModal('register')">新規登録</button>
+      </div>
       <table border="1">
         <% if (jobs.length === 0) { %>
           <tr>
-            <td colspan="6">検索条件に合致するレコードがありません</td>
+            <td colspan="6">検索条件に合致する案件はありません</td>
           </tr>
         <% } else { %>
           <thead>
@@ -65,51 +79,53 @@
                 <td><%= jobs[i].start_date %></td>
                 <td><%= jobs[i].end_date %></td>
                 <td>
-                  <button class="openModal" data-type="edit" onclick="selectModal('edit', '<%= jobs[i].id %>')" type="button" style="background-color: rgb(0, 208, 255);">編集</button>
+                  <button class="openModal edit-btn" data-type="edit" onclick="selectModal('edit', '<%= jobs[i].id %>')" type="button">編集</button>
                 </td>
                 <td>
-                  <button class="openModal" data-type="delete" onclick="selectModal('delete', '<%= jobs[i].id %>')" type="button" style="background-color: red;">削除</button>
+                  <button class="openModal delete-btn" data-type="delete" onclick="selectModal('delete', '<%= jobs[i].id %>')" type="button">削除</button>
                 </td>
               </tr>
             <% } %>
           </tbody>
         <% } %>
-      </table>
-
-      <!-- 案件登録・編集・削除モーダル -->
-      <div id="modal" class="modal">
-        <div class="modal-content">
-          <span class="close">&times;</span>
-          <div class="modal-header" id="modal-header">
-            ####
-          </div>
-          <form id="modalForm" class="modal-form" method="post">
-            <label for="jobno" class="modal-form__label">jobno</label>
-            <input type="text" name="jobno" id="jobNo" class="form-control">
-            <br>
-            <label for="jobName" class="modal-form__label">案件名</label>
-            <input type="text" name="jobName" id="jobName" class="form-control">
-            <br>
-            <label for="start_date" class="modal-form__label">開始日</label>
-            <input type="date" name="start_date" id="startDate" class="form-control">
-            <br>
-            <label for="end_date" class="modal-form__label">終了日</label>
-            <input type="date" name="end_date" id="endDate" class="form-control">
-          </form>
-          <div class="modal-footer">
-            <button class="submit-btn" id="submit-btn" type="submit" form="modalForm">##</button>
-            <button class="cancel-btn" type="button" style="background-color: azure;">キャンセル</button>
-          </div>
+      </table>  
+    </div>
+    
+    <!-- 案件登録・編集・削除モーダル -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <div class="modal-header" id="modal-header">
+          ####
+        </div>
+        <span id="warningMessage" style="color: red;"></span>
+        <form id="modalForm" class="modal-form" method="post">
+          <label for="jobno" class="modal-form__label">jobno</label>
+          <input type="text" name="jobno" id="jobNo" class="form-control" required>
+          <br>
+          <label for="jobName" class="modal-form__label">案件名</label>
+          <input type="text" name="jobName" id="jobName" class="form-control" required>
+          <br>
+          <label for="start_date" class="modal-form__label">開始日</label>
+          <input type="date" name="start_date" id="startDate" class="form-control" required>
+          <br>
+          <label for="end_date" class="modal-form__label">終了日</label>
+          <input type="date" name="end_date" id="endDate" class="form-control" required>
+        </form>
+        <div class="modal-footer">
+          <button class="submit-btn" id="submit-btn" type="submit" form="modalForm">##</button>
+          <button class="cancel-btn" type="button">キャンセル</button>
         </div>
       </div>
-      
-    </main>
+    </div>
+    
+  </main>
 
-    <!-- 外部ライブラリとスクリプト -->
-    <script src="//cdnjs.cloudflare.com/ajax/libs/list.js/2.3.1/list.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script type="text/javascript" src="../js/layout.js"></script>
-    <script type="text/javascript" src="../js/modal.js"></script>
-    <script type="text/javascript" src="../js/jobMaintenance.js"></script>
-  </body>
+  <!-- 外部ライブラリとスクリプト -->
+  <script src="//cdnjs.cloudflare.com/ajax/libs/list.js/2.3.1/list.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="text/javascript" src="../js/layout.js"></script>
+  <script type="text/javascript" src="../js/modal.js"></script>
+  <script type="text/javascript" src="../js/jobMaintenance.js"></script>
+</body>
 </html>

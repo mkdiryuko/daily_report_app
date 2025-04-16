@@ -1,0 +1,30 @@
+/* ベースデザイン */
+button {
+  padding: 5px 10px;
+  border-style: none;
+  background-color:#3366FF;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  min-width: 80px;
+}
+button:hover {
+  background-color: darkblue;
+}
+/* 編集ボタン */
+.edit-btn {
+  background-color: #F99F48;
+  margin: 3px;
+}
+.edit-btn:hover {
+  background-color: darkorange;
+}
+/* 削除ボタン*/
+.delete-btn {
+  background-color: #ED1A3D;
+  margin: 3px;
+}
+.delete-btn:hover {
+  background-color: darkred;
+}

@@ -4,8 +4,9 @@ const express = require('express');
 const router = express.Router();
 const mysql = require('mysql');
 const knex = require('../db/knex');
-const checkRelation = require('../db/checkRelation');
 const flash = require('connect-flash');
+const isAuthenticated = require('../auth/isAuthenticated');
+const checkAuth = require("../auth/checkAuth");
 
 const DBconfig = {
   host: process.env.DB_HOST,
@@ -16,8 +17,32 @@ const DBconfig = {
 
 const connection = mysql.createConnection(DBconfig);
 
-// 案件一覧表示
-router.get('/', async (req, res) => {
+// 削除対象の案件と紐づいた日報がある場合、警告を出す
+async function checkChildRecords(table_name, fk_name, fk_value) {
+  try {
+    // daily_report DBから、jobno_idが一致するレコードを1件取得
+    const record = await knex(table_name)
+    .where(fk_name, fk_value)
+    .first();
+
+    // レコードが取得出来たら存在すると判断
+    const hasChildRecords = !!record;
+    return hasChildRecords;
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+// 初期表示(案件一覧表示)
+// マネージャーまたは管理者権限が必要
+router.get('/', isAuthenticated, checkAuth(1), async (req, res, next) => {
+  console.log('---案件一覧GET---');
+  const isAuthenticated = req.session.isAuthenticated;
+  const userName = req.session.account?.name;
+  const userAuth = req.session.userAuth;
+  const authName = req.session.authname;
+
   try {
     const results = await knex('jobs')
       .select(
@@ -30,26 +55,23 @@ router.get('/', async (req, res) => {
 
     res.render('jobMaintenance', {
       title: 'Daily Report App',
-      isAuthenticated: req.session.isAuthenticated,
-      userName: req.session.account?.name,
-      authName: req.session.authname,
+      isAuthenticated: isAuthenticated,
+      userName: userName,
+      userAuth: userAuth,
+      authName: authName,
       jobs: results,
-      // relationJobnoIdList: await checkRelation.checkRelationId("daily_report", "jobno_id", jobno_id_list),
     });
   } catch (error) {
     console.error(error);
-    res.render('index', {
-      title: 'Daily Report App',
-      isAuthenticated: req.session.isAuthenticated,
-      userName: req.session.account?.name
-    });
+    error.message = '案件一覧の取得に失敗しました';
+    error.status = '500';
+    next(error);
   }
 });
 
 // 案件検索
-// 入力：検索パラメータ（jobno, 案件名, 開始日, 終了日）
-// 機能：案件を検索して検索結果を返す
-router.get('/search', async (req, res) => {
+// 検索パラメータ（jobno, 案件名, 開始日, 終了日）
+router.get('/search', isAuthenticated, checkAuth(1), async (req, res, next) => {
   console.log("---案件検索GET---");
   // クエリパラメータの取得（trimして空文字列も考慮）
   const jobno_search = req.query.jobno_search?.trim();
@@ -92,26 +114,31 @@ router.get('/search', async (req, res) => {
       ...req.query,
       isAuthenticated: req.session.isAuthenticated,
       userName: req.session.account?.name,
+      userAuth: req.session.userAuth,
       authName: req.session.authname,
       jobs: results,
     });
   } catch (error) {
     console.error("検索エラー：", error);
-    res.render('index', {
-      isAuthenticated: req.session.isAuthenticated,
-      userName: req.session.account?.name
-    });
+    error.message = '案件の検索に失敗しました';
+    error.status = '500';
+    next(error);
   }
 });
 
 // 案件モーダル表示（ID 指定の案件取得）
-router.get('/:id', async (req, res) => {
+router.get('/:id', isAuthenticated, checkAuth(1), async (req, res, next) => {
   console.log('---案件モーダル表示GET---');
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(req.params.id, 10); // 案件id
+  const hasChildRecord = await checkChildRecords('daily_report', 'jobno_id', `${id}`); // 案件idと紐づく日報があるかどうかを判定
+
   if (isNaN(id)) {
     console.error("無効なIDが渡されました:", req.params.id);
-    return res.status(400).json({ error: "Invalid id parameter" });
+    const err = new Error('無効なIDが渡されました。該当する案件が存在しません。');
+    err.status = 404;
+    return next(err);
   }
+  
   try {
     const job = await knex("jobs")
       .where({ id: id })
@@ -123,17 +150,22 @@ router.get('/:id', async (req, res) => {
       )
       .first();
     console.log("取得した案件：", job);
-    res.json(job);
+    res.json({
+      job: job,
+      hasChildRecord: hasChildRecord
+    });
   } catch (error) {
     console.error("データ取得エラー：", error);
-    res.status(500).json({ error: "Server error" });
+    error.message = '案件の取得に失敗しました';
+    error.status = 500;
+    next(error);
   }
 });
 
 // 案件登録
 // 入力：jobno, 案件名, 開始日, 終了日
 // 機能：案件の登録
-router.post('/register', async (req, res) => {
+router.post('/register', isAuthenticated, checkAuth(1), async (req, res, next) => {
   console.log('---案件登録POST---');
   const jobno = req.body.jobno;
   const job_name = req.body.jobName;
@@ -148,22 +180,24 @@ router.post('/register', async (req, res) => {
     end_date: end_date
   })
   .then(() => {
-    res.redirect('/jobMaintenance');
+    req.flash('success', '案件を登録しました');
+    // セッションの保存が完了してからリダイレクトする
+    req.session.save(() => {
+      res.redirect('/jobMaintenance');
+    })
   })
   .catch(error => {
     console.error(error);
-    res.render('index', {
-      title: 'Daily Report App',
-      isAuthenticated: req.session.isAuthenticated,
-      userName: req.session.account?.username,
-    })
+    error.message = '案件の取得に失敗しました';
+    error.status = 500;
+    next(error);
   })
 })
 
 // 案件更新
 // 入力：更新対象レコードのid, jobno, 案件名, 開始日, 終了日
 // 機能：登録済み案件の内容を更新する
-router.post('/edit/:id', async (req, res) => {
+router.post('/edit/:id', isAuthenticated, checkAuth(1), async (req, res, next) => {
   const id = req.params.id; // 更新対象レコードのid
   const jobno = req.body.jobno;
   const job_name = req.body.jobName;
@@ -185,8 +219,11 @@ router.post('/edit/:id', async (req, res) => {
     }
   )
   .then(() => {
-    console.log("案件情報を更新しました");
-    res.redirect('/jobMaintenance')
+    req.flash('success', '案件を編集しました');
+    // セッションの保存が完了してからリダイレクトする
+    req.session.save(() => {
+      res.redirect('/jobMaintenance');
+    })
   })
   .catch(error => {
     console.log("案件の更新に失敗しました");
@@ -195,12 +232,14 @@ router.post('/edit/:id', async (req, res) => {
       title: 'Daily Report App',
       isAuthenticated: req.session.isAuthenticated,
       userName: req.session.account?.username,
+      userAuth: req.session.userAuth,
+      authName: req.session.authname
     })
   })
 })
 
 // 案件削除
-router.post('/delete/:id', (req, res) => {
+router.post('/delete/:id', isAuthenticated, checkAuth(1), (req, res, next) => {
   const id = req.params.id; // 削除対象レコードのid
 
   if (isNaN(id)) {
@@ -214,7 +253,11 @@ router.post('/delete/:id', (req, res) => {
       if (deleteRows === 0) {
         return res.status(404).send({ message: `ID ${id} のレコードは存在しません` });
       }
-      res.redirect('/jobMaintenance');
+      req.flash('success', '案件を削除しました');
+      // セッションの保存が完了してからリダイレクトする
+      req.session.save(() => {
+        res.redirect('/jobMaintenance');
+      })
     })
     .catch(error => {
       console.error("削除エラー：", error);
@@ -222,9 +265,10 @@ router.post('/delete/:id', (req, res) => {
         title: 'Daily Report App',
         isAuthenticated: req.session.isAuthenticated,
         userName: req.session.account?.username,
+        userAuth: req.session.userAuth,
+        authName: req.session.authname
       })
     });
 });
-
 
 module.exports = router;
