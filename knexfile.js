@@ -1,14 +1,14 @@
 // Update with your config settings.
-require('dotenv').config({path: '.env.dev'});
+require('dotenv').config({path: '.env'});
 
 module.exports = {
 
   development: {
     client: "mysql",
     connection: {
-      database: "daily_report_app",
-      user: "root",
-      password: "yutozmt",
+      database: process.env.DB_NAME,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
     },
     pool: {
       min: 2,
@@ -19,9 +19,9 @@ module.exports = {
   staging: {
     client: "mysql",
     connection: {
-      database: "daily_report_app",
-      user: "root",
-      password: "yutozmt",
+      database: process.env.DB_NAME,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
     },
     pool: {
       min: 2,
@@ -32,14 +32,18 @@ module.exports = {
   production: {
     client: "mysql",
     connection: {
-      database: "daily_report_app",
-      user: "root",
-      password: "yutozmt",
+      database: process.env.DB_NAME,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
     },
     pool: {
       min: 2,
       max: 10
     },
+    migrations: {
+      directory: 'db/migrations',
+      tableName: 'knex_migrations'
+    }
   }
 
 };

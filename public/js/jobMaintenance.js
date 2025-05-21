@@ -27,11 +27,9 @@ const setInputsState = (isEditable) => {
 // サーバーから案件データを取得し、入力フィールドに反映
 const fetchJob = async (id) => {
   try {
-    console.log("fetch時のjob_id:", id);
     await fetch(`/jobMaintenance/${id}`)
       .then(response => response.json())
       .then(data => {
-        console.log("サーバーから取得したデータ：", data);
         jobNoInput.value   = data.job.jobno;
         jobNameInput.value = data.job.name;
         startDateInput.value = data.job.start_date;
@@ -101,7 +99,6 @@ const validateForm = (form) => {
     return false;
   }
   if (startDateInput.value && endDateInput.value) {
-    console.log('日付エラーチェック');
     // Dateオブジェクトに変換して比較
     const startDate = new Date(startDateInput.value);
     const endDate = new Date(endDateInput.value);
@@ -111,7 +108,6 @@ const validateForm = (form) => {
       return false;
     }
   }
-  console.log("エラーなし")
   return true;
 }
 

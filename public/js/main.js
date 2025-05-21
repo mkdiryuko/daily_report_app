@@ -124,7 +124,6 @@ const validateForm = (form) => {
     alert('入力エラー：全項目を入力してください');
     return false;
   }
-  console.log("エラーなし")
   return true;
 }
 
@@ -195,10 +194,8 @@ modalSubmitBtn.addEventListener('click', function(event) {
 // サーバーから登録内容を取得し、モーダルに表示する
 const fetchDailyReport = async (id) => {
   try {
-    console.log("fetch時のdaily_report_id : ", id);
     const response = await fetch(`main/${id}`);
     const data = await response.json();
-    console.log("サーバーから取得した日報：", data)
     jobNoForm.value = data.jobno;
     jobNameForm.value = data.job_name;
     
@@ -219,7 +216,6 @@ const fetchDailyReport = async (id) => {
     }
 
     note.value = data.note;
-    console.log("備考：", data.note);
 
   } catch (error) {
     console.error("データの取得に失敗しました", error);

@@ -1,90 +1,90 @@
 #!/usr/bin/env node
 
-/**
- * Module dependencies.
- */
+const fs = require('fs');
+const path = require('path');
+const http = require('http');
+const https = require('https');
+const debug = require('debug')('daily-report-app:server');
+const express = require('express');
+const app = require('../app');
 
-var app = require('../app');
-var debug = require('debug')('daily-report-app:server');
-var http = require('http');
+// ================================
+// 証明書の読み込み
+// ================================
+const credentials = {
+  key: fs.readFileSync(path.resolve(__dirname, '../key.pem'), 'utf8'),
+  cert: fs.readFileSync(path.resolve(__dirname, '../cert.pem'), 'utf8')
+};
 
-/**
- * Get port from environment and store in Express.
- */
+// ================================
+// ポートの設定
+// ================================
+const HTTPS_PORT = normalizePort(process.env.PORT || '8443');
+const HTTP_PORT = 5000; // リダイレクト用
 
-var port = normalizePort(process.env.PORT || '3000');
-app.set('port', port);
+app.set('port', HTTPS_PORT);
 
-/**
- * Create HTTP server.
- */
+// ================================
+// HTTPS サーバー起動
+// ================================
+const httpsServer = https.createServer(credentials, app);
+httpsServer.listen(HTTPS_PORT);
+httpsServer.on('error', onError(HTTPS_PORT));
+httpsServer.on('listening', onListening(HTTPS_PORT));
 
-var server = http.createServer(app);
+// ================================
+// HTTP → HTTPS リダイレクト
+// ================================
+const httpApp = express();
+httpApp.use((req, res) => {
+  const host = req.headers.host.replace(/:\d+$/, `:${HTTPS_PORT}`);
+  res.redirect(`https://${host}${req.url}`);
+});
 
-/**
- * Listen on provided port, on all network interfaces.
- */
+const httpServer = http.createServer(httpApp);
+httpServer.listen(HTTP_PORT);
+httpServer.on('error', onError(HTTP_PORT));
+httpServer.on('listening', onListening(HTTP_PORT));
 
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
-
-/**
- * Normalize a port into a number, string, or false.
- */
-
+// ================================
+// ポート正規化関数
+// ================================
 function normalizePort(val) {
-  var port = parseInt(val, 10);
-
-  if (isNaN(port)) {
-    // named pipe
-    return val;
-  }
-
-  if (port >= 0) {
-    // port number
-    return port;
-  }
-
+  const port = parseInt(val, 10);
+  if (isNaN(port)) return val;       // named pipe
+  if (port >= 0) return port;        // port number
   return false;
 }
 
-/**
- * Event listener for HTTP server "error" event.
- */
+// ================================
+// エラー処理関数
+// ================================
+function onError(port) {
+  return function (error) {
+    if (error.syscall !== 'listen') throw error;
 
-function onError(error) {
-  if (error.syscall !== 'listen') {
-    throw error;
-  }
-
-  var bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
-
-  // handle specific listen errors with friendly messages
-  switch (error.code) {
-    case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
-      process.exit(1);
-      break;
-    case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
-      process.exit(1);
-      break;
-    default:
-      throw error;
-  }
+    const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+    switch (error.code) {
+      case 'EACCES':
+        console.error(`${bind} requires elevated privileges`);
+        process.exit(1);
+        break;
+      case 'EADDRINUSE':
+        console.error(`${bind} is already in use`);
+        process.exit(1);
+        break;
+      default:
+        throw error;
+    }
+  };
 }
 
-/**
- * Event listener for HTTP server "listening" event.
- */
-
-function onListening() {
-  var addr = server.address();
-  var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
-  debug('Listening on ' + bind);
+// ================================
+// ログ出力関数
+// ================================
+function onListening(port) {
+  return function () {
+    const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+    debug(`Listening on ${bind}`);
+  };
 }

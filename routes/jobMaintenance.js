@@ -1,4 +1,4 @@
-require('dotenv').config({ path: '../.env.dev' });
+require('dotenv').config({ path: '../.env' });
 
 const express = require('express');
 const router = express.Router();
@@ -37,7 +37,6 @@ async function checkChildRecords(table_name, fk_name, fk_value) {
 // 初期表示(案件一覧表示)
 // マネージャーまたは管理者権限が必要
 router.get('/', isAuthenticated, checkAuth(1), async (req, res, next) => {
-  console.log('---案件一覧GET---');
   const isAuthenticated = req.session.isAuthenticated;
   const userName = req.session.account?.name;
   const userAuth = req.session.userAuth;
@@ -72,14 +71,11 @@ router.get('/', isAuthenticated, checkAuth(1), async (req, res, next) => {
 // 案件検索
 // 検索パラメータ（jobno, 案件名, 開始日, 終了日）
 router.get('/search', isAuthenticated, checkAuth(1), async (req, res, next) => {
-  console.log("---案件検索GET---");
-  // クエリパラメータの取得（trimして空文字列も考慮）
+  // クエリパラメータの取得
   const jobno_search = req.query.jobno_search?.trim();
   const name_search = req.query.name_search?.trim();
   const start_date_search = req.query.start_date_search?.trim();
   const end_date_search = req.query.end_date_search?.trim();
-
-  console.log({ jobno_search, name_search, start_date_search, end_date_search });
 
   try {
     const query = knex('jobs');
@@ -108,7 +104,6 @@ router.get('/search', isAuthenticated, checkAuth(1), async (req, res, next) => {
       knex.raw("DATE_FORMAT(start_date, '%Y/%m/%d') AS 'start_date'"),
       knex.raw("DATE_FORMAT(end_date, '%Y/%m/%d') AS 'end_date'")
     );
-    console.log("検索結果：", results);
 
     res.render('jobMaintenance', {
       ...req.query,
@@ -128,7 +123,6 @@ router.get('/search', isAuthenticated, checkAuth(1), async (req, res, next) => {
 
 // 案件モーダル表示（ID 指定の案件取得）
 router.get('/:id', isAuthenticated, checkAuth(1), async (req, res, next) => {
-  console.log('---案件モーダル表示GET---');
   const id = parseInt(req.params.id, 10); // 案件id
   const hasChildRecord = await checkChildRecords('daily_report', 'jobno_id', `${id}`); // 案件idと紐づく日報があるかどうかを判定
 
@@ -149,7 +143,6 @@ router.get('/:id', isAuthenticated, checkAuth(1), async (req, res, next) => {
         knex.raw("DATE_FORMAT(end_date, '%Y-%m-%d') AS 'end_date'")
       )
       .first();
-    console.log("取得した案件：", job);
     res.json({
       job: job,
       hasChildRecord: hasChildRecord
@@ -166,7 +159,6 @@ router.get('/:id', isAuthenticated, checkAuth(1), async (req, res, next) => {
 // 入力：jobno, 案件名, 開始日, 終了日
 // 機能：案件の登録
 router.post('/register', isAuthenticated, checkAuth(1), async (req, res, next) => {
-  console.log('---案件登録POST---');
   const jobno = req.body.jobno;
   const job_name = req.body.jobName;
   const start_date = req.body.start_date;
@@ -226,7 +218,6 @@ router.post('/edit/:id', isAuthenticated, checkAuth(1), async (req, res, next) =
     })
   })
   .catch(error => {
-    console.log("案件の更新に失敗しました");
     console.error("サーバーエラー：", error);
     res.render('index', {
       title: 'Daily Report App',

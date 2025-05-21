@@ -7,8 +7,7 @@ require('dotenv').config();
 
 const path = require('path');
 const express = require('express');
-const session = require('express-session');
-// const flash = require('express-flash');
+const session = require('cookie-session');
 const connectFlash = require('connect-flash');
 const createError = require('http-errors');
 const cookieParser = require('cookie-parser');
@@ -28,17 +27,13 @@ const app = express();
 
 app.use(cookieParser('keyboard cat'));
 
-/**
- * 永続的なユーザーセッションに express-session ミドルウェアを使用します。利用可能なオプションをよく理解してください。
- * Visit: https://www.npmjs.com/package/express-session
- */
 app.use(session({
   secret: process.env.EXPRESS_SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: false, // TODO set this to true on production
+    secure: true,
     maxAge: 3600000 // クッキーの有効時間：1時間 (3600000ミリ秒)
   }
 }));

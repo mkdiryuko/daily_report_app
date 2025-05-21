@@ -1,4 +1,4 @@
-require('dotenv').config({path: '../.env.dev'});
+require('dotenv').config({path: '../.env'});
 
 const express = require('express');
 const router = express.Router();
@@ -34,7 +34,6 @@ async function getDayTotalPersonHour(date, user_id) {
 
 // TODOマネージャーがパートナーに応じて、案件を割り当てるので、jobsを自分の案件のみに絞る
 router.get('/', isAuthenticated, async (req, res, next) => {
-  console.log("---main GET---")
   const isAuthenticated = req.session.isAuthenticated;
   const userName = req.session.account?.name;
   const userId = req.session.userId;
@@ -85,7 +84,6 @@ router.get('/', isAuthenticated, async (req, res, next) => {
 
 // 既に登録された日報を、編集・削除モーダル中のフォームに格納するために取得する
 router.get('/:id', isAuthenticated, async (req, res, next) => {
-  console.log('---モーダル表示GET---');
   const id = parseInt(req.params.id, 10);
   try { 
     const selected_daily_report = await knex("daily_report")
@@ -105,11 +103,9 @@ router.get('/:id', isAuthenticated, async (req, res, next) => {
     if (!selected_daily_report) {
       const err = new Error('該当する日報が存在しません');
       err.status = 404;
-      console.log(err);
       return next(err);
     }
 
-    console.log('取得した日報：', selected_daily_report);
     res.json(selected_daily_report);
 
   } catch(error) {
@@ -122,7 +118,6 @@ router.get('/:id', isAuthenticated, async (req, res, next) => {
 
 // 新規登録
 router.post('/register/:date', isAuthenticated, async (req, res, next) => {
-  console.log("---新規登録POST---");
   const user_id = req.session.userId;
   const job_date = req.params.date;  // 日付をクライアントから取得
   const jobno = req.body.jobNo;
@@ -140,13 +135,12 @@ router.post('/register/:date', isAuthenticated, async (req, res, next) => {
   .then(result => {
     if (result) {
       jobno_id = result.id;
-      console.log('job_id', jobno_id);
     } else {
-      console.log('job_idが存在しません');
+      console.log('job_idが存在しません'); //TODO エラーを発生させる
     }
   })
   .catch(error => {
-    console.log(error);
+    console.log(error); //TODO エラーハンドリングの追加
   })
 
   // job_descがjob_desc DBに存在するかをチェック
@@ -157,13 +151,12 @@ router.post('/register/:date', isAuthenticated, async (req, res, next) => {
   .then(result => {
     if (result) {
       job_desc_id = result.id;
-      console.log("job_desc_id", job_desc_id);
     } else {
-      console.log("job_desc_idが存在しません");
+      console.log("job_desc_idが存在しません"); //TODO エラーを発生させる
     }
   })
   .catch(error => {
-    console.error(error);
+    console.error(error); //TODO エラーハンドリングの追加
   })
   
   // daily_reportに業務日報を登録する
@@ -193,7 +186,6 @@ router.post('/register/:date', isAuthenticated, async (req, res, next) => {
 
 // 編集
 router.post('/edit/:id', isAuthenticated, async (req, res, next) => {
-  console.log("---編集用POSTルート---");
   const id = req.params.id;
   const jobno = req.body.jobNo;
   const job_desc = req.body.job_desc;
@@ -209,13 +201,12 @@ router.post('/edit/:id', isAuthenticated, async (req, res, next) => {
   .then(result => {
     if (result) {
       jobno_id = result.id;
-      console.log('job_id', jobno_id);
     } else {
-      console.log('job_idが存在しません');
+      console.log('job_idが存在しません'); //TODO エラーハンドリングの追加
     }
   })
   .catch(error => {
-    console.log(error);
+    console.log(error); //TODO エラーハンドリングの追加
   })
 
   // job_descがjob_desc DBに存在するかをチェック
@@ -226,13 +217,12 @@ router.post('/edit/:id', isAuthenticated, async (req, res, next) => {
   .then(result => {
     if (result) {
       job_desc_id = result.id;
-      console.log("job_desc_id", job_desc_id);
     } else {
-      console.log("job_desc_idが存在しません");
+      console.log("job_desc_idが存在しません"); //TODO エラーハンドリングの追加
     }
   })
   .catch(error => {
-    console.error(error);
+    console.error(error); //TODO エラーハンドリングの追加
   })
 
   await knex("daily_report")
@@ -262,7 +252,6 @@ router.post('/edit/:id', isAuthenticated, async (req, res, next) => {
 
 // 削除
 router.post('/delete/:id', isAuthenticated, async (req, res) => {
-  console.log('---削除POST---');
   const id = req.params.id;
   const job_date = req.query.date;
   
@@ -287,7 +276,6 @@ router.post('/delete/:id', isAuthenticated, async (req, res) => {
 
 // 休暇申請
 router.post('/absence', async (req, res) => {
-  console.log('---休暇申請POST---');
   const user_id = req.session.userId;
   const date = req.body.date || today;
   const reason = req.body.reason;
@@ -316,7 +304,6 @@ router.post('/absence', async (req, res) => {
 
 // 休暇申請削除
 router.post('/absence/delete', isAuthenticated, async (req, res) => {
-  console.log('---休暇取消POST---');
   const date = req.query.date;
 
   await knex("absence")
@@ -331,7 +318,6 @@ router.post('/absence/delete', isAuthenticated, async (req, res) => {
     })
   })
   .catch(error => {
-    console.log("休暇申請の削除に失敗しました");
     console.error(error);
     error.message = '休暇申請の削除に失敗しました';
     error.status = '500';

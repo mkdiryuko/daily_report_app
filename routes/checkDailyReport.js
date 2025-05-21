@@ -1,4 +1,4 @@
-require('dotenv').config({ path: '../.env.dev' });
+require('dotenv').config({ path: '../.env' });
 
 const express = require('express');
 const router = express.Router();
@@ -25,7 +25,6 @@ const current_day = today.getDate();
 // 入力：年、月、パートナー名（任意）
 // 出力：月単位の総工数(hh:mm)
 async function getTotalPersonHourByMonth(year, month, partner_name) {
-  console.log("---指定した月の総工数の計算---(getTotalPersonHourByMonth)");
   try {
     const targetMonth = `${year}-${String(month).padStart(2, '0')}`;
     let query = knex('daily_report')
@@ -44,7 +43,6 @@ async function getTotalPersonHourByMonth(year, month, partner_name) {
     
     const total_person_hour = result[0]?.total_person_hour;
     if (!total_person_hour) {
-      console.log("指定した年月に工数が登録されていませんでした");
       return "00:00";
     }
     return total_person_hour.slice(0, 5); // 秒を削除し、 "hh:mm" フォーマットに
@@ -58,7 +56,6 @@ async function getTotalPersonHourByMonth(year, month, partner_name) {
 // 入力：年、月、日、パートナー名（任意）
 // 出力：日単位の総工数(hh:mm)
 async function getTotalPersonHourByDay(year, month, day, partner_name) {
-  console.log("---指定した日の総工数の計算---(getTotalPersonHourByDay)");
   try {
     let query = knex('daily_report')
       .join('user', 'daily_report.user_id', '=', 'user.id')
@@ -116,7 +113,6 @@ function searchByMonth(query, year, month, partner_name) {
 
 // 日報一覧表示（管理者権限が必要）
 router.get('/', isAuthenticated, checkAuth(2), async (req, res) => {
-  console.log('---日報一覧 GET---')
   const isAuthenticated = req.session.isAuthenticated;
   const userName = req.session.account?.name;
   const userAuth = req.session.userAuth;
@@ -168,7 +164,6 @@ router.get('/', isAuthenticated, checkAuth(2), async (req, res) => {
 // 機能：案件の検索
 // 出力：検索結果（id, パートナー名, 作業日, jobno, 案件名, 業務内容, 工数, 備考, 総工数）
 router.get('/search', isAuthenticated, checkAuth(2), async (req, res) => {
-  console.log("---日報検索GET---");
   try{
     // クエリパラメータの取得
     const { year, month, day, partner_name } = req.query;
@@ -196,7 +191,6 @@ router.get('/search', isAuthenticated, checkAuth(2), async (req, res) => {
       'daily_report.person_hour',
       'daily_report.note'
       );
-    console.log(records);
     
     let total_person_hour = "00:00";
 
