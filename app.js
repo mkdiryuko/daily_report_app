@@ -7,8 +7,7 @@ require('dotenv').config();
 
 const path = require('path');
 const express = require('express');
-const session = require('express-session');
-// const flash = require('express-flash');
+const session = require('cookie-session');
 const connectFlash = require('connect-flash');
 const createError = require('http-errors');
 const cookieParser = require('cookie-parser');
