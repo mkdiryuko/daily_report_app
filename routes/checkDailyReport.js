@@ -118,7 +118,7 @@ function searchByMonth(query, year, month, partner_name) {
 router.get('/', isAuthenticated, checkAuth(2), async (req, res) => {
   console.log('---日報一覧 GET---')
   const isAuthenticated = req.session.isAuthenticated;
-  const userName = req.session.account?.name;
+  const userName = req.session.username;
   const userAuth = req.session.userAuth;
   const authName = req.session.authname;
   const total_person_hour = await getTotalPersonHourByDay(current_year, current_month, current_day); // 今日の総工数を取得する

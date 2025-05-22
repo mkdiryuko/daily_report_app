@@ -1,13 +1,8 @@
-/*
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License.
- */
-
 require('dotenv').config();
 
 const path = require('path');
 const express = require('express');
-const session = require('cookie-session');
+const session = require('express-session');
 const connectFlash = require('connect-flash');
 const createError = require('http-errors');
 const cookieParser = require('cookie-parser');
@@ -15,22 +10,20 @@ const logger = require('morgan');
 
 const indexRouter = require('./routes/index');
 const mainRouter = require('./routes/main');
-const usersRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
 const jobMaintenanceRouter = require('./routes/jobMaintenance');
 const calendarRouter = require('./routes/calendar');
 const checkDailyReportRouter = require('./routes/checkDailyReport');
-const isAuthenticated = require('./auth/isAuthenticated');
+const passport = require('passport');
 
 // initialize express
 const app = express();
 
+// authorization
+require("./auth/passport")();
+
 app.use(cookieParser('keyboard cat'));
 
-/**
- * 永続的なユーザーセッションに express-session ミドルウェアを使用します。利用可能なオプションをよく理解してください。
- * Visit: https://www.npmjs.com/package/express-session
- */
 app.use(session({
   secret: process.env.EXPRESS_SESSION_SECRET,
   resave: false,
@@ -38,7 +31,7 @@ app.use(session({
   cookie: {
     httpOnly: true,
     secure: false, // TODO set this to true on production
-    maxAge: 3600000 // クッキーの有効時間：1時間 (3600000ミリ秒)
+    maxAge: 24 * 60 * 60* 1000 // クッキーの有効時間：24時間
   }
 }));
 
@@ -61,8 +54,12 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+// routing
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
 app.use('/auth', authRouter);
 app.use('/jobMaintenance', jobMaintenanceRouter);
 app.use('/main', mainRouter);
@@ -89,10 +86,14 @@ app.use(function (err, req, res, next) {
     message: err.message,
     error: res.locals.error,
     isAuthenticated: req.session.isAuthenticated,
-    userName: req.session.account?.name,
+    userName: req.session.username,
     userAuth: req.session.userAuth,
     authName: req.session.authname
   });
 });
+
+app.get('/', (req, res) => {
+  res.redirect('/siginin');
+})
 
 module.exports = app;

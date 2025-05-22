@@ -20,6 +20,9 @@
     "http-errors": "~1.6.3",
     "knex": "^3.1.0",
     "morgan": "~1.9.1",
-    "mysql": "^2.18.1"
+    "mysql": "^2.18.1",
+    "passport": "^0.7.0",
+    "passport-custom": "^1.1.1",
+    "passport-local": "^1.0.0"
   }
 }

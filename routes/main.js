@@ -36,7 +36,7 @@ async function getDayTotalPersonHour(date, user_id) {
 router.get('/', isAuthenticated, async (req, res, next) => {
   console.log("---main GET---")
   const isAuthenticated = req.session.isAuthenticated;
-  const userName = req.session.account?.name;
+  const userName = req.session.username;
   const userId = req.session.userId;
   const userAuth = req.session.userAuth;
   const authName = req.session.authname;

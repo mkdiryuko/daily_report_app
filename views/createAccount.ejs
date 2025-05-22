@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <%- include('partials/head.ejs'); %>
+</head>
+<body>
+  <%- include('partials/header.ejs'); %>
+  <%- include('partials/sidebar.ejs'); %>
+  <main>
+    <h1>アカウントの新規作成</h1>
+    <form action="./create_account" method="POST">
+      <label for="username">名前</label>
+      <input type="text" name="username" placeholder="名前" required />
+      <br>
+      <label for="email">メールアドレス</label>
+      <input type="email" name="email" id="email" placeholder="メールアドレス" required />
+      <br>
+      <label for="emailRe">メールアドレス（確認用）</label>
+      <input type="email" name="emailRe" id="emailRe" placeholder="メールアドレスの再確認" required />
+      <br>
+      <button type="submit" onClick="return CheckMail()">登録</button>
+    </form>
+    <a href="/"><h4>トップページへ戻る</h4></a>
+  </main>
+  <script>
+    function CheckMail() {
+      var input1 = document.getElementById("email").value;
+      var input2 = document.getElementById("emailRe").value;
+      if (input1 !== input2) {
+        window.alert("メールアドレスが一致しません。");
+        return false;
+      } else {
+        return true;
+      }
+    }
+  </script>
+</body>

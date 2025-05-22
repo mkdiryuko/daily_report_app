@@ -39,7 +39,7 @@ async function checkChildRecords(table_name, fk_name, fk_value) {
 router.get('/', isAuthenticated, checkAuth(1), async (req, res, next) => {
   console.log('---案件一覧GET---');
   const isAuthenticated = req.session.isAuthenticated;
-  const userName = req.session.account?.name;
+  const userName = req.session.username;
   const userAuth = req.session.userAuth;
   const authName = req.session.authname;
 
@@ -113,7 +113,7 @@ router.get('/search', isAuthenticated, checkAuth(1), async (req, res, next) => {
     res.render('jobMaintenance', {
       ...req.query,
       isAuthenticated: req.session.isAuthenticated,
-      userName: req.session.account?.name,
+      userName: req.session.username,
       userAuth: req.session.userAuth,
       authName: req.session.authname,
       jobs: results,
@@ -231,7 +231,7 @@ router.post('/edit/:id', isAuthenticated, checkAuth(1), async (req, res, next) =
     res.render('index', {
       title: 'Daily Report App',
       isAuthenticated: req.session.isAuthenticated,
-      userName: req.session.account?.username,
+      userName: req.session.username,
       userAuth: req.session.userAuth,
       authName: req.session.authname
     })
@@ -264,7 +264,7 @@ router.post('/delete/:id', isAuthenticated, checkAuth(1), (req, res, next) => {
       res.render('index', {
         title: 'Daily Report App',
         isAuthenticated: req.session.isAuthenticated,
-        userName: req.session.account?.username,
+        userName: req.session.username,
         userAuth: req.session.userAuth,
         authName: req.session.authname
       })
