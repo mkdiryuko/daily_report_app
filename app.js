@@ -3,6 +3,10 @@ require('dotenv').config();
 const path = require('path');
 const express = require('express');
 const session = require('express-session');
+const passport = require('passport');
+const { RedisStore } = require('connect-redis');
+const { createClient } = require('redis');
+const redisClient = createClient();
 const connectFlash = require('connect-flash');
 const createError = require('http-errors');
 const cookieParser = require('cookie-parser');
@@ -14,7 +18,11 @@ const authRouter = require('./routes/auth');
 const jobMaintenanceRouter = require('./routes/jobMaintenance');
 const calendarRouter = require('./routes/calendar');
 const checkDailyReportRouter = require('./routes/checkDailyReport');
-const passport = require('passport');
+
+redisClient.connect().catch(console.error);
+const redisStore = new RedisStore({
+  client: redisClient,
+});
 
 // initialize express
 const app = express();
@@ -25,6 +33,7 @@ require("./auth/passport")();
 app.use(cookieParser('keyboard cat'));
 
 app.use(session({
+  store: redisStore,
   secret: process.env.EXPRESS_SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
