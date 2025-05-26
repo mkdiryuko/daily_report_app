@@ -9,12 +9,15 @@
 
   <main>
     <% if (isAuthenticated) { %>
-      <p>Hi <%= userName %>!</p>
       <a href="/calendar">トップページに戻る</a>
     <% } else { %>
       <h1>サインイン</h1>
-      <a href="/auth/signin">サインイン</a>
-      <h3>アカウントをお持ちでない方</h3>
+      <h2>index.ejs</h2>
+      <form action="/auth/signin" method="POST">
+        <input type="email" name="email" placeholder="メールアドレス" required />
+        <button type="submit">ログイン</button>
+      </form>
+      <p>アカウントをお持ちでない方</p>
       <a href="/auth/create_account">アカウントの新規作成</a>
     <% } %>
   </main>
@@ -22,5 +25,3 @@
   <script src="../js/layout.js"></script>
 </body>
 </html>
-
-

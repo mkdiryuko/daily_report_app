@@ -93,7 +93,7 @@ async function getAbsenceDays(year, month, user_id) {
 router.get('/', isAuthenticated, async (req, res) => {
   console.log("---カレンダーGETリクエスト---");
   const isAuthenticated = req.session.isAuthenticated;
-  const userName = req.session.account?.name;
+  const userName = req.session.username;
   const userId = req.session.userId;
   const userAuth = req.session.userAuth;
   const authName = req.session.authname;

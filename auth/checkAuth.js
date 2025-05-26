@@ -20,7 +20,7 @@ const checkAuth = (requiredAuth) => {
         message: 'このページにアクセスする権限がありません',
         error: res.locals.error,
         isAuthenticated: req.session.isAuthenticated,
-        userName: req.session.account?.name,
+        userName: req.session.username,
         userAuth: req.session.userAuth,
         authName: req.session.authname
       })
