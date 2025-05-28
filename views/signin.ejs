@@ -17,6 +17,12 @@
         <button class="close-btn" onclick="this.parentElement.style.display='none'">&times;</button>
       </div>
       <% } %>
+      <% if(messages.failure){ %>
+      <div class="alert alert-danger" role="alert">
+        <%= messages.failure %>
+        <button class="close-btn" onclick="this.parentElement.style.display='none'">&times;</button>
+      </div>
+      <% } %>
       <h1>サインイン</h1>
       <form action="/auth/signin" method="POST">
         <input type="email" name="email" placeholder="メールアドレス" required />
