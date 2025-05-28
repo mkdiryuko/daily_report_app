@@ -33,7 +33,11 @@ router.get('/signin', (req, res, next) => {
 router.post('/signin', (req, res, next) => {
   passport.authenticate('email-signin', (err, user, info) => {
     if (err) return next(err);
-    if (!user) return res.redirect('/signin');
+    if (!user) {
+      message = '入力されたメールアドレスは登録されていません'
+      req.flash('failure', message)
+      return res.redirect('/auth/signin');
+    }
 
     req.login(user, (err) => {
       if (err) return next(err);
