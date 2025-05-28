@@ -7,6 +7,12 @@
   <%- include('partials/header.ejs'); %>
   <%- include('partials/sidebar.ejs'); %>
   <main>
+    <% if(messages.failure) { %>
+      <div class="alert alert-danger" role="alert">
+        <%= messages.failure %>
+        <button class="close-btn" onclick="this.parentElement.style.display='none'">&times;</button>
+      </div>
+    <% } %>
     <h1>アカウントの新規作成</h1>
     <form action="./create_account" method="POST">
       <label for="username">名前</label>

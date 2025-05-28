@@ -1,5 +1,3 @@
-require('dotenv').config({path: '../.env.dev'});
-
 const express = require('express');
 const router = express.Router();
 const mysql = require('mysql2')

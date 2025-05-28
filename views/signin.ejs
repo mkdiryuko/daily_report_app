@@ -11,8 +11,13 @@
     <% if (isAuthenticated) { %>
       <a href="/calendar">トップページに戻る</a>
     <% } else { %>
+      <% if(messages.success){ %>
+      <div class="alert alert-success" role="alert">
+        <%= messages.success %>
+        <button class="close-btn" onclick="this.parentElement.style.display='none'">&times;</button>
+      </div>
+      <% } %>
       <h1>サインイン</h1>
-      <h2>index.ejs</h2>
       <form action="/auth/signin" method="POST">
         <input type="email" name="email" placeholder="メールアドレス" required />
         <button type="submit">ログイン</button>

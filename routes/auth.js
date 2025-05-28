@@ -1,5 +1,3 @@
-require('dotenv').config({path: '../.env.dev'});
-
 const express = require('express');
 const router = express.Router();
 const mysql = require('mysql2')
@@ -94,6 +92,14 @@ router.post('/create_account', async (req, res, next) => {
   const username = req.body.username;
   const email = req.body.email;
 
+  const existUser = await knex('user').where({'email': email}).first()
+
+  if (existUser) {
+    message = 'そのメールアドレスは既に登録されています'
+    req.flash('failure', message)
+    return res.redirect('/auth/create_account')
+  }
+
   await knex('user')
   .insert({
     name: username,
@@ -101,7 +107,7 @@ router.post('/create_account', async (req, res, next) => {
     auth: 0 // デフォルトはパートナー
   })
   .then(() => {
-    req.flash('success', 'ユーザー登録が完了しました');
+    req.flash('success', 'ユーザー登録に成功しました');
     res.redirect('/auth/signin');
   })
   .catch(error => {

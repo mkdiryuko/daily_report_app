@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({path: '.env.dev'});
 
 const path = require('path');
 const express = require('express');
@@ -30,8 +30,6 @@ const app = express();
 // authorization
 require("./auth/passport")();
 
-app.use(cookieParser('keyboard cat'));
-
 app.use(session({
   store: redisStore,
   secret: process.env.EXPRESS_SESSION_SECRET,
@@ -59,7 +57,7 @@ app.set('view engine', 'ejs');
 
 app.use(logger('dev'));
 app.use(express.json());
-app.use(cookieParser());
+app.use(cookieParser('keyboard cat'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
