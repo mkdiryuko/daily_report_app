@@ -2,7 +2,7 @@ require('dotenv').config({path: '../.env.dev'});
 
 const express = require('express');
 const router = express.Router();
-const mysql = require('mysql')
+const mysql = require('mysql2')
 const knex = require('../db/knex')
 const flash = require('connect-flash');
 const isAuthenticated = require('../auth/isAuthenticated');

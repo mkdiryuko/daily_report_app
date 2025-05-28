@@ -3,7 +3,7 @@ require('dotenv').config({path: '../.env.dev'});
 const express = require('express');
 const knex = require('../db/knex');
 const router = express.Router();
-const mysql = require('mysql');
+const mysql = require('mysql2');
 
 const DBconfig = {
   host: process.env.DB_HOST,

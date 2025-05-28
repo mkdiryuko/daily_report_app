@@ -4,11 +4,11 @@ require('dotenv').config({path: '.env.dev'});
 module.exports = {
 
   development: {
-    client: "mysql",
+    client: "mysql2",
     connection: {
-      database: "daily_report_app",
-      user: "root",
-      password: "yutozmt",
+      database: process.env.DB_NAME,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
     },
     pool: {
       min: 2,
@@ -17,11 +17,11 @@ module.exports = {
   },
 
   staging: {
-    client: "mysql",
+    client: "mysql2",
     connection: {
-      database: "daily_report_app",
-      user: "root",
-      password: "yutozmt",
+      database: process.env.DB_NAME,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
     },
     pool: {
       min: 2,
@@ -30,11 +30,11 @@ module.exports = {
   },
 
   production: {
-    client: "mysql",
+    client: "mysql2",
     connection: {
-      database: "daily_report_app",
-      user: "root",
-      password: "yutozmt",
+      database: process.env.DB_NAME,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
     },
     pool: {
       min: 2,
