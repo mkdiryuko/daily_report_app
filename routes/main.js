@@ -56,7 +56,7 @@ router.get('/', isAuthenticated, async (req, res, next) => {
   .then(daily_reports => {
     return Promise.all([
       knex('jobs').select('*'),
-      knex('job_desc').select('*'),
+      knex('job_desc').select('*').orderBy('id', 'asc'),
       knex('absence').select('date').where({'date': selectedDate}).first()
     ]).then(([jobs, job_descs, absence]) => {
       res.render('main', {
