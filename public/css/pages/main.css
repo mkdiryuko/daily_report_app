@@ -83,6 +83,8 @@
 #job-search-dropdownMenu {
   width: fit-content;
   left: 0;
+  max-height: 300px;       /* 高さ制限を追加 */
+  overflow-y: auto;        /* スクロールバーを表示 */
 }
 #job-search-dropdownMenu ul {
   list-style-type: none;
